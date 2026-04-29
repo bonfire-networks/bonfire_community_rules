@@ -1,4 +1,4 @@
-defmodule Bonfire.ExtensionTemplate do
+defmodule Bonfire.CommunityRules do
   @moduledoc "./README.md" |> File.stream!() |> Enum.drop(1) |> Enum.join()
 
   use Bonfire.Common.Config
@@ -8,11 +8,11 @@ defmodule Bonfire.ExtensionTemplate do
   alias Bonfire.Common.Utils
 
   declare_extension(
-    "Bonfire.ExtensionTemplate",
+    "Bonfire.CommunityRules",
     icon: "bi:app",
     description: l("An awesome extension")
     # default_nav: [
-    #   Bonfire.ExtensionTemplate.Web.HomeLive
+    #   Bonfire.CommunityRules.Web.HomeLive
     # ]
   )
 

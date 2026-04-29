@@ -1,4 +1,4 @@
-defmodule Bonfire.ExtensionTemplate.Migrations do
+defmodule Bonfire.CommunityRules.Migrations do
   @moduledoc false
   use Ecto.Migration
 
