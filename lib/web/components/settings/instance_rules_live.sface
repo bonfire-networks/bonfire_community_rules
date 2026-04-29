@@ -1,0 +1,5 @@
+<StatefulComponent
+  id="instance-rules-builder"
+  module={maybe_component(Bonfire.CommunityRules.Web.RulesBuilderLive, @__context__)}
+  entity_id={Bonfire.Common.Settings.instance_scope()}
+/>

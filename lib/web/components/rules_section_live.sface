@@ -1,0 +1,125 @@
+<div class="border border-base-200 rounded-xl bg-base-100 overflow-hidden">
+  <button
+    id={"section-header-#{@section_id}"}
+    phx-click="toggle_section"
+    phx-value-id={@section_id}
+    phx-target={@target}
+    class="w-full flex items-center justify-between p-3 text-left hover:bg-base-200 transition-colors"
+  >
+    <span class="font-medium">{Keyword.get(@section_data, :name, @section_id)}</span>
+    <div class="flex items-center gap-2">
+      {#if @mode == :entity}
+        {#case Bonfire.CommunityRules.Web.RulesBuilderLive.count_selected(@checked, @section_id)}
+          {#match 0}
+            <span class="badge badge-ghost badge-sm">{l("none selected")}</span>
+          {#match n}
+            <span class="badge badge-primary badge-sm">{n} {l("selected")}</span>
+        {/case}
+      {#else}
+        <span class="badge badge-ghost badge-sm">{length(Keyword.get(@section_data, :rules, []))} {l("rules")}</span>
+      {/if}
+      <Iconify.iconify
+        icon={if Map.get(@open_sections, @section_id, false), do: "ph:caret-up-bold", else: "ph:caret-down-bold"}
+        class="w-4 h-4 text-base-content/40"
+      />
+    </div>
+  </button>
+
+  {#if Map.get(@open_sections, @section_id, false)}
+    <div class="px-3 pb-3 flex flex-col gap-1 border-t border-base-200 pt-2">
+      {#for {rule_id, rule_meta} <- Keyword.get(@section_data, :rules, [])}
+        {#if @mode == :entity}
+          <StatelessComponent
+            module={maybe_component(Bonfire.CommunityRules.Web.RulesEntityRuleLive, @__context__)}
+            section_id={@section_id}
+            rule_id={to_string(rule_id)}
+            rule_meta={rule_meta}
+            checked={@checked}
+            qualifiers={@qualifiers}
+            read_only={@read_only}
+            target={@target}
+          />
+        {#else}
+          <StatelessComponent
+            module={maybe_component(Bonfire.CommunityRules.Web.RulesTemplateRuleLive, @__context__)}
+            section_id={@section_id}
+            rule_id={to_string(rule_id)}
+            rule_meta={rule_meta}
+            read_only={@read_only}
+            target={@target}
+          />
+        {/if}
+      {/for}
+
+      {#if Map.get(@custom_rules, @section_id, []) != []}
+        <div
+          id={"custom-rules-list-#{@section_id}"}
+          phx-hook="Draggable"
+          data-event="reorder_custom_rules"
+          data-parent={@section_id}
+          class="flex flex-col gap-0.5 mt-1"
+        >
+          {#for custom <- Map.get(@custom_rules, @section_id, [])}
+            <StatelessComponent
+              module={maybe_component(Bonfire.CommunityRules.Web.RulesCustomRuleLive, @__context__)}
+              section_id={@section_id}
+              rule={custom}
+              mode={@mode}
+              read_only={@read_only}
+              target={@target}
+            />
+          {/for}
+        </div>
+      {/if}
+
+      {#if !@read_only}
+        {#if Map.get(@add_custom_mode, @section_id)}
+          <form
+            id={"add-custom-form-#{@section_id}"}
+            phx-submit={if @mode == :entity, do: "add_custom_rule", else: "add_template_custom_rule"}
+            phx-target={@target}
+            class="flex gap-2 mt-2"
+          >
+            <input
+              type="hidden"
+              name={if @mode == :entity, do: "group_id", else: "section_id"}
+              value={@section_id}
+            />
+            <input
+              type="text"
+              name="name"
+              id={"custom-rule-input-#{@section_id}"}
+              class="input input-sm input-bordered flex-1"
+              placeholder={l("Rule name...")}
+              autofocus
+            />
+            {#if @mode == :settings}
+              <label class="flex items-center gap-1 text-sm cursor-pointer">
+                <input type="checkbox" name="has_qualifier" value="true" class="checkbox checkbox-xs">
+                {l("qualifier")}
+              </label>
+            {/if}
+            <button type="submit" class="btn btn-sm btn-primary">{l("Add")}</button>
+            <button
+              type="button"
+              phx-click="toggle_add_custom"
+              phx-value-id={@section_id}
+              phx-target={@target}
+              class="btn btn-sm btn-ghost"
+            >{l("Cancel")}</button>
+          </form>
+        {#else}
+          <button
+            id={"add-custom-btn-#{@section_id}"}
+            phx-click="toggle_add_custom"
+            phx-value-id={@section_id}
+            phx-target={@target}
+            class="btn btn-xs btn-ghost self-start mt-1 text-base-content/50 hover:text-base-content"
+          >
+            + {if @mode == :entity, do: l("Add custom rule"), else: l("Add rule")}
+          </button>
+        {/if}
+      {/if}
+    </div>
+  {/if}
+</div>

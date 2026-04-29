@@ -7,6 +7,12 @@ defmodule Bonfire.CommunityRules.RuntimeConfig do
   def config do
     import Config
 
+    config :bonfire_community_rules, :qualifier_labels,
+      yes: l("Allowed"),
+      no: l("Not allowed"),
+      with_label: l("Allowed with labeling / disclosure"),
+      with_approval: l("Approval required")
+
     config :bonfire_community_rules, :template_rules,
       behavior: [
         name: l("Behavior"),

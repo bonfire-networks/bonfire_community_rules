@@ -1,0 +1,56 @@
+<div
+  id={"custom-rule-#{@section_id}-#{@rule["id"]}"}
+  class="flex items-center gap-2 px-2 py-1.5 rounded-lg group hover:bg-base-200"
+  data-sortable-item={@rule["id"]}
+>
+  {#if !@read_only}
+    <span class="cursor-grab text-base-content/30 hover:text-base-content/60 shrink-0">
+      <#Icon iconify="ph:dots-six-vertical" class="w-3.5 h-3.5" />
+    </span>
+    <form
+      id={"custom-rule-edit-form-#{@section_id}-#{@rule["id"]}"}
+      phx-submit="update_custom_rule"
+      phx-target={@target}
+      class="flex items-center gap-2 flex-1 min-w-0"
+    >
+      <input type="hidden" name="section_id" value={@section_id}>
+      <input type="hidden" name="rule_id" value={@rule["id"]}>
+      <input
+        type="text"
+        name="name"
+        value={@rule["name"]}
+        class="input input-xs input-ghost flex-1 min-w-0 focus:input-bordered"
+        placeholder={l("Rule name...")}
+      />
+      {#if @mode == :entity && @rule["qualifier"]}
+        <span class="badge badge-ghost badge-xs shrink-0">
+          {Bonfire.CommunityRules.Qualifier.label(@rule["qualifier"])}
+        </span>
+      {/if}
+      <button
+        type="submit"
+        class="btn btn-xs btn-ghost opacity-0 group-hover:opacity-100 shrink-0"
+        aria-label={l("Save")}
+      >
+        <#Icon iconify="ph:check" class="w-3.5 h-3.5" />
+      </button>
+    </form>
+    <button
+      phx-click="delete_custom_rule"
+      phx-value-section={@section_id}
+      phx-value-rule={@rule["id"]}
+      phx-target={@target}
+      class="btn btn-xs btn-ghost text-error opacity-0 group-hover:opacity-100 shrink-0"
+      aria-label={l("Delete")}
+    >
+      <#Icon iconify="ph:trash" class="w-3.5 h-3.5" />
+    </button>
+  {#else}
+    <span class="text-sm flex-1">{@rule["name"]}</span>
+    {#if @rule["qualifier"]}
+      <span class="badge badge-ghost badge-xs">
+        {Bonfire.CommunityRules.Qualifier.label(@rule["qualifier"])}
+      </span>
+    {/if}
+  {/if}
+</div>

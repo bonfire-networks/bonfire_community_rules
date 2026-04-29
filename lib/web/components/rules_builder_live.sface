@@ -1,0 +1,151 @@
+<div id={@id} class="flex flex-col gap-6">
+  {!-- Header --}
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h2 class="text-xl font-bold">
+        {#if @title}
+          {@title}{#if @entity_name}
+            — {@entity_name}{/if}
+        {#elseif @mode == :settings}
+          {l("Rules Template")}{#if @entity_name}
+            — {@entity_name}{/if}
+        {#else}
+          {l("Community Rules")}{#if @entity_name}
+            — {@entity_name}{/if}
+        {/if}
+      </h2>
+      <p class="text-sm text-base-content/60 mt-0.5">
+        {#if @description}
+          {@description}
+        {#elseif @mode == :settings}
+          {l("Manage the template rules that communities can choose from.")}
+        {#else}
+          {l("Select which rules apply and how each one is enforced.")}
+        {/if}
+      </p>
+    </div>
+    {#if !@read_only}
+      <div class="flex gap-2">
+        <button
+          id="export-json-btn"
+          phx-click="show_export"
+          phx-value-format="json"
+          phx-target={@myself}
+          class="btn btn-sm btn-ghost gap-1"
+        >
+          <#Icon iconify="ph:export" class="w-4 h-4" />{l("Export JSON")}
+        </button>
+        <button
+          id="export-elixir-btn"
+          phx-click="show_export"
+          phx-value-format="elixir"
+          phx-target={@myself}
+          class="btn btn-sm btn-ghost gap-1"
+        >
+          <#Icon iconify="ph:code" class="w-4 h-4" />{l("Export config")}
+        </button>
+      </div>
+    {/if}
+  </div>
+
+  {!-- Sections --}
+  {#for {top_key, top_val} <- @template}
+    <div>
+      <div class="text-xs font-bold uppercase tracking-widest text-base-content/40 mb-3">
+        {Keyword.get(top_val, :name, to_string(top_key))}
+      </div>
+      <div class="flex flex-col gap-2">
+        {#for {section_id, section_data} <- Keyword.get(top_val, :sections, [])}
+          <StatelessComponent
+            module={maybe_component(Bonfire.CommunityRules.Web.RulesSectionLive, @__context__)}
+            section_id={to_string(section_id)}
+            section_data={section_data}
+            mode={@mode}
+            checked={@checked}
+            qualifiers={@qualifiers}
+            custom_rules={@custom_rules}
+            open_sections={@open_sections}
+            add_custom_mode={@add_custom_mode}
+            read_only={@read_only}
+            target={@myself}
+          />
+        {/for}
+      </div>
+    </div>
+  {/for}
+
+  {!-- Summary panel (entity mode only) --}
+  {#if @mode == :entity}
+    {#case Bonfire.CommunityRules.Web.RulesBuilderLive.selected_summary(
+        @checked,
+        @qualifiers,
+        @custom_rules,
+        @template
+      )}
+      {#match []}
+        <div class="alert alert-info text-sm">{l("No rules selected yet.")}</div>
+      {#match summary}
+        <div class="card border border-base-200 bg-base-100">
+          <div class="card-body p-4 gap-3">
+            <h3 class="card-title text-base">{l("Selected rules")}</h3>
+            {#for {group_name, rules} <- summary}
+              <div>
+                <div class="text-xs font-semibold text-base-content/50 uppercase tracking-wide mb-1">{group_name}</div>
+                <ul class="flex flex-col gap-0.5">
+                  {#for rule <- rules}
+                    <li class="text-sm flex items-center gap-2">
+                      <span class="text-primary">•</span>
+                      <span>{rule.name}</span>
+                      {#if rule.qualifier}
+                        <span class="text-primary/70 text-xs">→ {Bonfire.CommunityRules.Qualifier.label(rule.qualifier)}</span>
+                      {/if}
+                    </li>
+                  {/for}
+                </ul>
+              </div>
+            {/for}
+          </div>
+        </div>
+    {/case}
+  {/if}
+
+  {!-- Save button (settings mode only — entity mode auto-saves) --}
+  {#if !@read_only && @mode == :settings}
+    <div>
+      <button id="save-rules-btn" phx-click="save" phx-target={@myself} class="btn btn-primary">
+        {l("Save template")}
+      </button>
+    </div>
+  {/if}
+
+  {!-- Export modal --}
+  {#if @export_format}
+    <div
+      id="export-modal"
+      class="modal modal-open"
+      phx-click-away="close_export"
+      phx-target={@myself}
+    >
+      <div class="modal-box w-full max-w-2xl" phx-click="">
+        <h3 class="font-bold text-lg mb-3">
+          {#if @export_format == "json"}{l("Export as JSON")}{#else}{l("Export as Elixir config")}{/if}
+        </h3>
+        <textarea
+          id="export-output"
+          class="textarea textarea-bordered w-full font-mono text-xs"
+          rows="16"
+          readonly
+        >{@export_output}</textarea>
+        <div class="modal-action">
+          <button
+            id="copy-export-btn"
+            phx-hook="CopyToClipboard"
+            data-target="export-output"
+            class="btn btn-sm btn-ghost"
+          >{l("Copy")}</button>
+          <button id="close-export-btn" phx-click="close_export" phx-target={@myself} class="btn btn-sm">{l("Close")}</button>
+        </div>
+      </div>
+    </div>
+  {/if}
+</div>

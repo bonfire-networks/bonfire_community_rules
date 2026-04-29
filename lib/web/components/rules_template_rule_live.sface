@@ -1,0 +1,65 @@
+<div
+  id={"tmpl-rule-#{@section_id}-#{@rule_id}"}
+  class="flex items-center gap-2 px-2 py-1.5 rounded-lg group hover:bg-base-200"
+>
+  {!-- View mode --}
+  <div
+    id={"tmpl-rule-view-#{@section_id}-#{@rule_id}"}
+    class="flex items-center gap-2 flex-1 min-w-0"
+  >
+    <span class="text-sm flex-1 truncate">{@rule_meta[:name] || @rule_id}</span>
+    {#if @rule_meta[:has_qualifier]}
+      <span class="badge badge-ghost badge-xs shrink-0">{l("qualifier")}</span>
+    {/if}
+    {#if !@read_only}
+      <button
+        type="button"
+        class="btn btn-xs btn-ghost opacity-0 group-hover:opacity-100 shrink-0"
+        aria-label={l("Edit rule")}
+        phx-click={JS.hide(to: "#tmpl-rule-view-#{@section_id}-#{@rule_id}")
+        |> JS.show(to: "#tmpl-rule-edit-#{@section_id}-#{@rule_id}", display: "flex")
+        |> JS.focus(to: "#tmpl-rule-input-#{@section_id}-#{@rule_id}")}
+      >
+        <#Icon iconify="ph:pencil-simple" class="w-3.5 h-3.5" />
+      </button>
+      <button
+        phx-click="delete_template_rule"
+        phx-value-section={@section_id}
+        phx-value-rule={@rule_id}
+        phx-target={@target}
+        class="btn btn-xs btn-ghost text-error opacity-0 group-hover:opacity-100 shrink-0"
+        aria-label={l("Delete rule")}
+      >
+        <#Icon iconify="ph:trash" class="w-3.5 h-3.5" />
+      </button>
+    {/if}
+  </div>
+
+  {!-- Edit mode (hidden by default) --}
+  {#if !@read_only}
+    <form
+      id={"tmpl-rule-edit-#{@section_id}-#{@rule_id}"}
+      phx-submit="update_template_rule"
+      phx-target={@target}
+      class="hidden items-center gap-2 flex-1 min-w-0"
+    >
+      <input type="hidden" name="section_id" value={@section_id}>
+      <input type="hidden" name="rule_id" value={@rule_id}>
+      <input
+        type="text"
+        name="name"
+        id={"tmpl-rule-input-#{@section_id}-#{@rule_id}"}
+        value={@rule_meta[:name] || @rule_id}
+        class="input input-xs input-bordered flex-1 min-w-0"
+        placeholder={l("Rule name...")}
+      />
+      <button type="submit" class="btn btn-xs btn-primary shrink-0">{l("Save")}</button>
+      <button
+        type="button"
+        class="btn btn-xs btn-ghost shrink-0"
+        phx-click={JS.show(to: "#tmpl-rule-view-#{@section_id}-#{@rule_id}")
+        |> JS.hide(to: "#tmpl-rule-edit-#{@section_id}-#{@rule_id}")}
+      >{l("Cancel")}</button>
+    </form>
+  {/if}
+</div>

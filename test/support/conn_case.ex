@@ -24,7 +24,8 @@ defmodule Bonfire.CommunityRules.ConnCase do
       import Phoenix.ConnTest
 
       import Bonfire.UI.Common.Testing.Helpers
-      import Phoenix.LiveViewTest
+      # import Phoenix.LiveViewTest
+      import PhoenixTest
 
       # import Bonfire.CommunityRules.Fake
 

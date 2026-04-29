@@ -1,0 +1,5 @@
+<StatefulComponent
+  id="rules-builder-settings"
+  module={maybe_component(Bonfire.CommunityRules.Web.RulesBuilderLive, @__context__)}
+  settings_scope={@scope}
+/>
