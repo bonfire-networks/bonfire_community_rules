@@ -1,6 +1,6 @@
 <div class="border border-base-200 rounded-xl bg-base-100 overflow-hidden">
   <button
-    id={"section-header-#{@section_id}"}
+    id={"#{@parent_id}-section-header-#{@section_id}"}
     phx-click="toggle_section"
     phx-value-id={@section_id}
     phx-target={@target}
@@ -31,6 +31,7 @@
         {#if @mode == :entity}
           <StatelessComponent
             module={maybe_component(Bonfire.CommunityRules.Web.RulesEntityRuleLive, @__context__)}
+            parent_id={@parent_id}
             section_id={@section_id}
             rule_id={to_string(rule_id)}
             rule_meta={rule_meta}
@@ -42,6 +43,7 @@
         {#else}
           <StatelessComponent
             module={maybe_component(Bonfire.CommunityRules.Web.RulesTemplateRuleLive, @__context__)}
+            parent_id={@parent_id}
             section_id={@section_id}
             rule_id={to_string(rule_id)}
             rule_meta={rule_meta}
@@ -53,7 +55,7 @@
 
       {#if Map.get(@custom_rules, @section_id, []) != []}
         <div
-          id={"custom-rules-list-#{@section_id}"}
+          id={"#{@parent_id}-custom-rules-list-#{@section_id}"}
           phx-hook="Draggable"
           data-event="reorder_custom_rules"
           data-parent={@section_id}
@@ -62,6 +64,7 @@
           {#for custom <- Map.get(@custom_rules, @section_id, [])}
             <StatelessComponent
               module={maybe_component(Bonfire.CommunityRules.Web.RulesCustomRuleLive, @__context__)}
+              parent_id={@parent_id}
               section_id={@section_id}
               rule={custom}
               mode={@mode}
@@ -75,7 +78,7 @@
       {#if !@read_only}
         {#if Map.get(@add_custom_mode, @section_id)}
           <form
-            id={"add-custom-form-#{@section_id}"}
+            id={"#{@parent_id}-add-custom-form-#{@section_id}"}
             phx-submit={if @mode == :entity, do: "add_custom_rule", else: "add_template_custom_rule"}
             phx-target={@target}
             class="flex gap-2 mt-2"
@@ -85,10 +88,11 @@
               name={if @mode == :entity, do: "group_id", else: "section_id"}
               value={@section_id}
             />
+            <label for={"#{@parent_id}-custom-rule-input-#{@section_id}"} class="sr-only">{l("Rule name...")}</label>
             <input
               type="text"
               name="name"
-              id={"custom-rule-input-#{@section_id}"}
+              id={"#{@parent_id}-custom-rule-input-#{@section_id}"}
               class="input input-sm input-bordered flex-1"
               placeholder={l("Rule name...")}
               autofocus
@@ -110,7 +114,7 @@
           </form>
         {#else}
           <button
-            id={"add-custom-btn-#{@section_id}"}
+            id={"#{@parent_id}-add-custom-btn-#{@section_id}"}
             phx-click="toggle_add_custom"
             phx-value-id={@section_id}
             phx-target={@target}

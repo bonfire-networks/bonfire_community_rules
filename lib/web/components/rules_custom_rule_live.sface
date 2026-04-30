@@ -1,5 +1,5 @@
 <div
-  id={"custom-rule-#{@section_id}-#{@rule["id"]}"}
+  id={"#{@parent_id}-custom-rule-#{@section_id}-#{@rule["id"]}"}
   class="flex items-center gap-2 px-2 py-1.5 rounded-lg group hover:bg-base-200"
   data-sortable-item={@rule["id"]}
 >
@@ -8,7 +8,7 @@
       <#Icon iconify="ph:dots-six-vertical" class="w-3.5 h-3.5" />
     </span>
     <form
-      id={"custom-rule-edit-form-#{@section_id}-#{@rule["id"]}"}
+      id={"#{@parent_id}-custom-rule-edit-form-#{@section_id}-#{@rule["id"]}"}
       phx-submit="update_custom_rule"
       phx-target={@target}
       class="flex items-center gap-2 flex-1 min-w-0"

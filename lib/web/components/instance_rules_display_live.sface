@@ -1,0 +1,6 @@
+<StatefulComponent
+  id="instance-rules-display"
+  module={maybe_component(Bonfire.CommunityRules.Web.RulesDisplayLive, @__context__)}
+  entity_id={Bonfire.Common.Settings.instance_scope()}
+  show_header={@show_header}
+/>

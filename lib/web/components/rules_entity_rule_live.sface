@@ -1,11 +1,11 @@
 <div>
   <label
-    id={"rule-label-#{@section_id}-#{@rule_id}"}
+    id={"#{@parent_id}-rule-label-#{@section_id}-#{@rule_id}"}
     class="flex items-center gap-3 cursor-pointer py-1.5 px-2 rounded-lg hover:bg-base-200 transition-colors"
   >
     <input
       type="checkbox"
-      id={"rule-check-#{@section_id}-#{@rule_id}"}
+      id={"#{@parent_id}-rule-check-#{@section_id}-#{@rule_id}"}
       class="checkbox checkbox-sm checkbox-primary"
       checked={Map.get(@checked, "#{@section_id}:#{@rule_id}")}
       phx-click="toggle_rule"
@@ -18,7 +18,7 @@
 
   {#if Map.get(@checked, "#{@section_id}:#{@rule_id}") && @rule_meta[:has_qualifier]}
     <form
-      id={"qualifier-block-#{@section_id}-#{@rule_id}"}
+      id={"#{@parent_id}-qualifier-block-#{@section_id}-#{@rule_id}"}
       phx-change="set_qualifier"
       phx-target={@target}
       class="ml-8 mt-1 mb-2 p-3 bg-base-200 rounded-xl flex flex-col gap-1"

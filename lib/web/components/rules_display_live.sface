@@ -1,0 +1,47 @@
+<div id={@id}>
+  {#if is_list(@sections) and @sections != []}
+    <div x-data="{open: true}" class="bg-base-100">
+      {#if @show_header}
+        <div
+          x-on:click="open = !open"
+          class="p-4 justify-between text-xl font-bold flex items-center gap-4 border-b border-base-content/10"
+        >
+          <div class="flex items-center gap-4">
+            <div iconify="ph:scales" class="w-6 h-6 text-base-content/80" aria-hidden="true" />
+            <span>{@title || l("Rules")}</span>
+          </div>
+          <button type="button" x-cloak class="btn btn-circle btn-sm btn-ghost" x-show="open">
+            <#Icon iconify="fluent:triangle-down-12-filled" class="w-4 h-4 text-base-content/70" />
+          </button>
+          <button type="button" class="btn btn-circle btn-sm btn-ghost" x-show="!open">
+            <#Icon iconify="fluent:triangle-right-12-filled" class="w-4 h-4 text-base-content/70" />
+          </button>
+        </div>
+      {/if}
+      <div x-show="open" x-cloak x-collapse class="p-4 flex flex-col gap-6">
+        {#for category <- @sections}
+          <div>
+            {#if e(category, :name, nil)}
+              <div class="text-sm font-bold text-base-content/70 mb-2">{e(category, :name, nil)}</div>
+            {/if}
+            {#for section <- e(category, :sections, [])}
+              <div class="mb-3">
+                <div class="text-xs font-semibold uppercase tracking-wide text-base-content/50 mb-1">
+                  {e(section, :name, nil)}
+                </div>
+                <ul class="flex flex-col gap-1">
+                  {#for rule <- e(section, :rules, [])}
+                    <li class="flex items-start gap-2 text-sm">
+                      <#Icon iconify="ph:check-circle-duotone" class="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                      <span class="flex-1">{e(rule, :name, nil)}{#if e(rule, :qualifier, nil)}{": "}{Bonfire.CommunityRules.Qualifier.label(e(rule, :qualifier, nil))}{/if}</span>
+                    </li>
+                  {/for}
+                </ul>
+              </div>
+            {/for}
+          </div>
+        {/for}
+      </div>
+    </div>
+  {/if}
+</div>

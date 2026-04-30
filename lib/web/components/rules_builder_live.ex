@@ -15,6 +15,7 @@ defmodule Bonfire.CommunityRules.Web.RulesBuilderLive do
   prop entity_name, :string, default: nil
   prop title, :string, default: nil
   prop description, :string, default: nil
+  prop show_header, :boolean, default: true
 
   def update(assigns, socket) do
     socket = assign(socket, assigns)
@@ -46,7 +47,13 @@ defmodule Bonfire.CommunityRules.Web.RulesBuilderLive do
         {socket.assigns.checked, socket.assigns.qualifiers, socket.assigns.custom_rules}
       else
         if mode == :entity do
-          hydrate_from_entity(entity)
+          hydrate_source =
+            case e(entity, :extra_info, nil) do
+              %Bonfire.Data.Identity.ExtraInfo{} = ei -> ei
+              _ -> Bonfire.CommunityRules.get_extra_info_by_id(e(entity, :id, nil) || entity)
+            end
+
+          Bonfire.CommunityRules.hydrate_entity(hydrate_source)
         else
           {%{}, %{}, %{}}
         end
@@ -100,8 +107,9 @@ defmodule Bonfire.CommunityRules.Web.RulesBuilderLive do
     {:noreply, assign(socket, add_custom_mode: add_custom_mode)}
   end
 
-  def handle_event("add_custom_rule", %{"group_id" => group_id, "name" => name}, socket)
+  def handle_event("add_custom_rule", %{"name" => name} = params, socket)
       when name != "" do
+    group_id = Map.get(params, "group_id") || Map.get(params, "section_id")
     customs = Map.get(socket.assigns.custom_rules, group_id, [])
     next_id = (customs |> Enum.map(& &1["id"]) |> Enum.max(fn -> 0 end)) + 1
     new_rule = %{"id" => next_id, "name" => name}
@@ -237,8 +245,14 @@ defmodule Bonfire.CommunityRules.Web.RulesBuilderLive do
 
     extra_info =
       case entity do
-        %Bonfire.Data.Identity.ExtraInfo{} = ei -> ei
-        _ -> e(entity, :extra_info, %Bonfire.Data.Identity.ExtraInfo{})
+        %Bonfire.Data.Identity.ExtraInfo{} = ei ->
+          ei
+
+        _ ->
+          case e(entity, :extra_info, nil) do
+            %Bonfire.Data.Identity.ExtraInfo{} = ei -> ei
+            _ -> %Bonfire.Data.Identity.ExtraInfo{id: e(entity, :id, nil)}
+          end
       end
 
     changeset = Changesets.cast_rules_changeset(extra_info, rules)
@@ -312,44 +326,6 @@ defmodule Bonfire.CommunityRules.Web.RulesBuilderLive do
 
   # --- helpers ---
 
-  defp hydrate_from_entity(nil), do: {%{}, %{}, %{}}
-
-  defp hydrate_from_entity(%Bonfire.Data.Identity.ExtraInfo{} = extra_info) do
-    rules = e(extra_info, :info, "rules", %{}) || %{}
-    do_hydrate(rules)
-  end
-
-  defp hydrate_from_entity(entity) do
-    rules = e(entity, :extra_info, :info, "rules", %{}) || %{}
-    do_hydrate(rules)
-  end
-
-  defp do_hydrate(rules) do
-    Enum.reduce(rules, {%{}, %{}, %{}}, fn {group_id, group_data}, {checked, quals, customs} ->
-      case group_data do
-        %{} ->
-          {c2, q2} =
-            Enum.reduce(group_data, {checked, quals}, fn
-              {"custom", _}, acc ->
-                acc
-
-              {rule_id, rule_data}, {c, q} ->
-                key = "#{group_id}:#{rule_id}"
-                c = Map.put(c, key, true)
-                q = if qual = rule_data["qualifier"], do: Map.put(q, key, qual), else: q
-                {c, q}
-            end)
-
-          custom_list = Map.get(group_data, "custom", [])
-          c3 = if custom_list == [], do: customs, else: Map.put(customs, group_id, custom_list)
-          {c2, q2, c3}
-
-        _ ->
-          {checked, quals, customs}
-      end
-    end)
-  end
-
   defp build_rules_map(assigns) do
     Enum.reduce(assigns.checked, %{}, fn {key, _}, acc ->
       [group_id, rule_id] = String.split(key, ":", parts: 2)
@@ -377,37 +353,9 @@ defmodule Bonfire.CommunityRules.Web.RulesBuilderLive do
 
   @doc "Build list of {group_name, [rule]} for the summary panel."
   def selected_summary(checked, qualifiers, custom_rules, template) do
-    all_sections = flatten_sections(template)
-
-    Enum.flat_map(all_sections, fn {section_id, section_data} ->
-      section_id_str = to_string(section_id)
-      rules_kw = Keyword.get(section_data, :rules, [])
-
-      selected_template =
-        Enum.flat_map(rules_kw, fn {rule_id, rule_meta} ->
-          key = "#{section_id_str}:#{to_string(rule_id)}"
-
-          if Map.get(checked, key) do
-            qualifier = Map.get(qualifiers, key)
-            name = rule_meta[:name] || to_string(rule_id)
-            [%{name: name, qualifier: qualifier}]
-          else
-            []
-          end
-        end)
-
-      selected_custom =
-        Map.get(custom_rules, section_id_str, [])
-        |> Enum.map(fn c -> %{name: c["name"], qualifier: c["qualifier"]} end)
-
-      all = selected_template ++ selected_custom
-      if all == [], do: [], else: [{Keyword.get(section_data, :name, section_id_str), all}]
-    end)
-  end
-
-  defp flatten_sections(template) do
-    Enum.flat_map(template, fn {_top_key, top_val} ->
-      Keyword.get(top_val, :sections, [])
+    Bonfire.CommunityRules.selected_rules(checked, qualifiers, custom_rules, template)
+    |> Enum.flat_map(fn %{sections: sections} ->
+      Enum.map(sections, fn %{name: name, rules: rules} -> {name, rules} end)
     end)
   end
 end

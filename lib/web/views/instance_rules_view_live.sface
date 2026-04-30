@@ -1,0 +1,8 @@
+<div class="max-w-2xl mx-auto p-6">
+  <StatefulComponent
+    id="instance-rules-view"
+    module={maybe_component(Bonfire.CommunityRules.Web.RulesDisplayLive, @__context__)}
+    entity_id={Bonfire.Common.Settings.instance_scope()}
+    show_header
+  />
+</div>

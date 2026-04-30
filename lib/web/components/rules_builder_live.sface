@@ -1,33 +1,35 @@
 <div id={@id} class="flex flex-col gap-6">
   {!-- Header --}
   <div class="flex flex-wrap items-center justify-between gap-3">
-    <div>
-      <h2 class="text-xl font-bold">
-        {#if @title}
-          {@title}{#if @entity_name}
-            — {@entity_name}{/if}
-        {#elseif @mode == :settings}
-          {l("Rules Template")}{#if @entity_name}
-            — {@entity_name}{/if}
-        {#else}
-          {l("Community Rules")}{#if @entity_name}
-            — {@entity_name}{/if}
-        {/if}
-      </h2>
-      <p class="text-sm text-base-content/60 mt-0.5">
-        {#if @description}
-          {@description}
-        {#elseif @mode == :settings}
-          {l("Manage the template rules that communities can choose from.")}
-        {#else}
-          {l("Select which rules apply and how each one is enforced.")}
-        {/if}
-      </p>
-    </div>
+    {#if @show_header}
+      <div>
+        <h2 class="text-xl font-bold">
+          {#if @title}
+            {@title}{#if @entity_name}
+              — {@entity_name}{/if}
+          {#elseif @mode == :settings}
+            {l("Rules Template")}{#if @entity_name}
+              — {@entity_name}{/if}
+          {#else}
+            {l("Community Rules")}{#if @entity_name}
+              — {@entity_name}{/if}
+          {/if}
+        </h2>
+        <p class="text-sm text-base-content/60 mt-0.5">
+          {#if @description}
+            {@description}
+          {#elseif @mode == :settings}
+            {l("Manage the template rules that communities can choose from.")}
+          {#else}
+            {l("Select which rules apply and how each one is enforced.")}
+          {/if}
+        </p>
+      </div>
+    {/if}
     {#if !@read_only}
       <div class="flex gap-2">
         <button
-          id="export-json-btn"
+          id={"#{@id}-export-json-btn"}
           phx-click="show_export"
           phx-value-format="json"
           phx-target={@myself}
@@ -36,7 +38,7 @@
           <#Icon iconify="ph:export" class="w-4 h-4" />{l("Export JSON")}
         </button>
         <button
-          id="export-elixir-btn"
+          id={"#{@id}-export-elixir-btn"}
           phx-click="show_export"
           phx-value-format="elixir"
           phx-target={@myself}
@@ -58,6 +60,7 @@
         {#for {section_id, section_data} <- Keyword.get(top_val, :sections, [])}
           <StatelessComponent
             module={maybe_component(Bonfire.CommunityRules.Web.RulesSectionLive, @__context__)}
+            parent_id={@id}
             section_id={to_string(section_id)}
             section_data={section_data}
             mode={@mode}
@@ -112,7 +115,12 @@
   {!-- Save button (settings mode only — entity mode auto-saves) --}
   {#if !@read_only && @mode == :settings}
     <div>
-      <button id="save-rules-btn" phx-click="save" phx-target={@myself} class="btn btn-primary">
+      <button
+        id={"#{@id}-save-rules-btn"}
+        phx-click="save"
+        phx-target={@myself}
+        class="btn btn-primary"
+      >
         {l("Save template")}
       </button>
     </div>
@@ -121,7 +129,7 @@
   {!-- Export modal --}
   {#if @export_format}
     <div
-      id="export-modal"
+      id={"#{@id}-export-modal"}
       class="modal modal-open"
       phx-click-away="close_export"
       phx-target={@myself}
@@ -131,19 +139,24 @@
           {#if @export_format == "json"}{l("Export as JSON")}{#else}{l("Export as Elixir config")}{/if}
         </h3>
         <textarea
-          id="export-output"
+          id={"#{@id}-export-output"}
           class="textarea textarea-bordered w-full font-mono text-xs"
           rows="16"
           readonly
         >{@export_output}</textarea>
         <div class="modal-action">
           <button
-            id="copy-export-btn"
+            id={"#{@id}-copy-export-btn"}
             phx-hook="CopyToClipboard"
-            data-target="export-output"
+            data-target={"#{@id}-export-output"}
             class="btn btn-sm btn-ghost"
           >{l("Copy")}</button>
-          <button id="close-export-btn" phx-click="close_export" phx-target={@myself} class="btn btn-sm">{l("Close")}</button>
+          <button
+            id={"#{@id}-close-export-btn"}
+            phx-click="close_export"
+            phx-target={@myself}
+            class="btn btn-sm"
+          >{l("Close")}</button>
         </div>
       </div>
     </div>

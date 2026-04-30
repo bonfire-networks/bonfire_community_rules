@@ -4,7 +4,8 @@ defmodule Bonfire.CommunityRules.Web.InstanceRulesLive do
 
   declare_settings_component(l("Instance Rules"),
     icon: "ph:scales",
-    description: l("Set the active rules for this instance")
+    description: l("Set the active rules for this instance"),
+    scope: :instance
   )
 
   prop scope, :any, default: :instance
