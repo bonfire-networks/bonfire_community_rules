@@ -7,30 +7,31 @@
     id={"#{@parent_id}-tmpl-rule-view-#{@section_id}-#{@rule_id}"}
     class="flex items-center gap-2 flex-1 min-w-0"
   >
-    <span class="text-sm flex-1 truncate">{@rule_meta[:name] || @rule_id}</span>
+    <span class="text-sm flex-1 truncate" title={@rule_meta[:name] || @rule_id}>{@rule_meta[:name] || @rule_id}</span>
     {#if @rule_meta[:has_qualifier]}
       <span class="badge badge-ghost badge-xs shrink-0">{l("qualifier")}</span>
     {/if}
     {#if !@read_only}
       <button
         type="button"
-        class="btn btn-xs btn-ghost opacity-0 group-hover:opacity-100 shrink-0"
+        id={"#{@parent_id}-tmpl-rule-edit-btn-#{@section_id}-#{@rule_id}"}
+        class="btn btn-sm btn-ghost btn-square shrink-0 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100"
         aria-label={l("Edit rule")}
         phx-click={JS.hide(to: "##{@parent_id}-tmpl-rule-view-#{@section_id}-#{@rule_id}")
         |> JS.show(to: "##{@parent_id}-tmpl-rule-edit-#{@section_id}-#{@rule_id}", display: "flex")
         |> JS.focus(to: "##{@parent_id}-tmpl-rule-input-#{@section_id}-#{@rule_id}")}
       >
-        <#Icon iconify="ph:pencil-simple" class="w-3.5 h-3.5" />
+        <#Icon iconify="ph:pencil-simple" class="w-4 h-4" />
       </button>
       <button
         phx-click="delete_template_rule"
         phx-value-section={@section_id}
         phx-value-rule={@rule_id}
         phx-target={@target}
-        class="btn btn-xs btn-ghost text-error opacity-0 group-hover:opacity-100 shrink-0"
+        class="btn btn-sm btn-ghost btn-square text-error shrink-0 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100"
         aria-label={l("Delete rule")}
       >
-        <#Icon iconify="ph:trash" class="w-3.5 h-3.5" />
+        <#Icon iconify="ph:trash" class="w-4 h-4" />
       </button>
     {/if}
   </div>
@@ -53,12 +54,13 @@
         class="input input-xs input-bordered flex-1 min-w-0"
         placeholder={l("Rule name...")}
       />
-      <button type="submit" class="btn btn-xs btn-primary shrink-0">{l("Save")}</button>
+      <button type="submit" class="btn btn-sm btn-primary shrink-0">{l("Save")}</button>
       <button
         type="button"
-        class="btn btn-xs btn-ghost shrink-0"
+        class="btn btn-sm btn-ghost shrink-0"
         phx-click={JS.show(to: "##{@parent_id}-tmpl-rule-view-#{@section_id}-#{@rule_id}")
-        |> JS.hide(to: "##{@parent_id}-tmpl-rule-edit-#{@section_id}-#{@rule_id}")}
+        |> JS.hide(to: "##{@parent_id}-tmpl-rule-edit-#{@section_id}-#{@rule_id}")
+        |> JS.focus(to: "##{@parent_id}-tmpl-rule-edit-btn-#{@section_id}-#{@rule_id}")}
       >{l("Cancel")}</button>
     </form>
   {/if}

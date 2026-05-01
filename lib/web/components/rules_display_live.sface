@@ -1,47 +1,33 @@
 <div id={@id}>
   {#if is_list(@sections) and @sections != []}
-    <div x-data="{open: true}" class="bg-base-100">
-      {#if @show_header}
-        <div
-          x-on:click="open = !open"
-          class="p-4 justify-between text-xl font-bold flex items-center gap-4 border-b border-base-content/10"
-        >
-          <div class="flex items-center gap-4">
-            <div iconify="ph:scales" class="w-6 h-6 text-base-content/80" aria-hidden="true" />
+    {#if @show_header}
+      {!-- <details> gives native disclosure: aria-expanded, keyboard support,
+           and open/close state without JS. The chevron rotates via group-open. --}
+      <details
+        open
+        class="group rounded-box border border-base-content/15 bg-base-100 [&_summary::-webkit-details-marker]:hidden"
+      >
+        <summary class="list-none cursor-pointer flex items-center justify-between gap-3 px-5 py-4 select-none rounded-t-box hover:bg-base-200/50 transition-colors">
+          <div class="flex items-center gap-2.5 text-base font-semibold text-base-content">
+            <#Icon
+              iconify="ph:scales-duotone"
+              class="w-[18px] h-[18px] text-base-content/70"
+              aria-hidden="true"
+            />
             <span>{@title || l("Rules")}</span>
           </div>
-          <button type="button" x-cloak class="btn btn-circle btn-sm btn-ghost" x-show="open">
-            <#Icon iconify="fluent:triangle-down-12-filled" class="w-4 h-4 text-base-content/70" />
-          </button>
-          <button type="button" class="btn btn-circle btn-sm btn-ghost" x-show="!open">
-            <#Icon iconify="fluent:triangle-right-12-filled" class="w-4 h-4 text-base-content/70" />
-          </button>
+          <#Icon
+            iconify="ph:caret-down-bold"
+            class="w-3.5 h-3.5 text-base-content/60 transition-transform duration-200 group-open:rotate-180"
+            aria-hidden="true"
+          />
+        </summary>
+        <div class="px-5 pb-5 pt-1">
+          <Bonfire.CommunityRules.Web.RulesDisplayBodyLive sections={@sections} />
         </div>
-      {/if}
-      <div x-show="open" x-cloak x-collapse class="p-4 flex flex-col gap-6">
-        {#for category <- @sections}
-          <div>
-            {#if e(category, :name, nil)}
-              <div class="text-sm font-bold text-base-content/70 mb-2">{e(category, :name, nil)}</div>
-            {/if}
-            {#for section <- e(category, :sections, [])}
-              <div class="mb-3">
-                <div class="text-xs font-semibold uppercase tracking-wide text-base-content/50 mb-1">
-                  {e(section, :name, nil)}
-                </div>
-                <ul class="flex flex-col gap-1">
-                  {#for rule <- e(section, :rules, [])}
-                    <li class="flex items-start gap-2 text-sm">
-                      <#Icon iconify="ph:check-circle-duotone" class="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                      <span class="flex-1">{e(rule, :name, nil)}{#if e(rule, :qualifier, nil)}{": "}{Bonfire.CommunityRules.Qualifier.label(e(rule, :qualifier, nil))}{/if}</span>
-                    </li>
-                  {/for}
-                </ul>
-              </div>
-            {/for}
-          </div>
-        {/for}
-      </div>
-    </div>
+      </details>
+    {#else}
+      <Bonfire.CommunityRules.Web.RulesDisplayBodyLive sections={@sections} />
+    {/if}
   {/if}
 </div>

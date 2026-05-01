@@ -204,6 +204,39 @@ defmodule Bonfire.CommunityRules.Web.RulesBuilderLive do
     {:noreply, assign(socket, custom_rules: custom_rules)}
   end
 
+  def handle_event(
+        "move_custom_rule",
+        %{"section_id" => group_id, "rule_id" => rule_id_str, "direction" => direction},
+        socket
+      ) do
+    rule_id = String.to_integer(rule_id_str)
+    customs = Map.get(socket.assigns.custom_rules, group_id, [])
+    index = Enum.find_index(customs, &(&1["id"] == rule_id))
+
+    target_index =
+      case {direction, index} do
+        {_, nil} -> nil
+        {"up", i} when i > 0 -> i - 1
+        {"down", i} when i < length(customs) - 1 -> i + 1
+        _ -> nil
+      end
+
+    if is_nil(target_index) do
+      {:noreply, socket}
+    else
+      a = Enum.at(customs, index)
+      b = Enum.at(customs, target_index)
+
+      reordered =
+        customs
+        |> List.replace_at(index, b)
+        |> List.replace_at(target_index, a)
+
+      {:noreply,
+       assign(socket, custom_rules: Map.put(socket.assigns.custom_rules, group_id, reordered))}
+    end
+  end
+
   def handle_event("show_export", %{"format" => format}, socket) do
     rules = build_rules_map(socket.assigns)
     template = socket.assigns.template

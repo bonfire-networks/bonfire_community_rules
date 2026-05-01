@@ -1,0 +1,22 @@
+<ol class="list-none flex flex-col gap-3">
+  {#for {rule, idx} <- Enum.with_index(all_rules(@sections), 1)}
+    <li class="flex items-baseline gap-3">
+      <span class="font-mono tabular-nums text-[11px] text-base-content/40 shrink-0 text-right">
+        {idx}
+      </span>
+      <div class="flex-1 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+        <span class="text-[14px] leading-snug text-base-content/85">{e(rule, :name, nil)}</span>
+        {#case e(rule, :qualifier, nil)}
+          {#match nil}
+          {#match q}
+            <span class={
+              "inline-flex items-center px-1.5 py-px rounded-md text-[11px] font-medium",
+              "bg-error/10 text-error": q == "no",
+              "bg-success/10 text-success": q == "yes",
+              "bg-warning/15 text-warning": q in ["with_label", "with_approval"]
+            }>{Bonfire.CommunityRules.Qualifier.label(q)}</span>
+        {/case}
+      </div>
+    </li>
+  {/for}
+</ol>

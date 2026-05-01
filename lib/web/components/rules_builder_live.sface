@@ -131,11 +131,18 @@
     <div
       id={"#{@id}-export-modal"}
       class="modal modal-open"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={"#{@id}-export-modal-title"}
+      tabindex="-1"
       phx-click-away="close_export"
+      phx-window-keydown="close_export"
+      phx-key="Escape"
       phx-target={@myself}
+      phx-mounted={JS.focus(to: "##{@id}-close-export-btn")}
     >
       <div class="modal-box w-full max-w-2xl" phx-click="">
-        <h3 class="font-bold text-lg mb-3">
+        <h3 id={"#{@id}-export-modal-title"} class="font-bold text-lg mb-3">
           {#if @export_format == "json"}{l("Export as JSON")}{#else}{l("Export as Elixir config")}{/if}
         </h3>
         <textarea

@@ -1,10 +1,12 @@
-<div class="border border-base-200 rounded-xl bg-base-100 overflow-hidden">
+<div class="border border-base-content/10 rounded-xl bg-base-100 overflow-hidden">
   <button
     id={"#{@parent_id}-section-header-#{@section_id}"}
     phx-click="toggle_section"
     phx-value-id={@section_id}
     phx-target={@target}
-    class="w-full flex items-center justify-between p-3 text-left hover:bg-base-200 transition-colors"
+    aria-expanded={if Map.get(@open_sections, @section_id, false), do: "true", else: "false"}
+    aria-controls={"#{@parent_id}-section-body-#{@section_id}"}
+    class="w-full flex items-center justify-between p-3 text-left hover:bg-base-200 focus-visible:bg-base-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 transition-colors"
   >
     <span class="font-medium">{Keyword.get(@section_data, :name, @section_id)}</span>
     <div class="flex items-center gap-2">
@@ -26,7 +28,12 @@
   </button>
 
   {#if Map.get(@open_sections, @section_id, false)}
-    <div class="px-3 pb-3 flex flex-col gap-1 border-t border-base-200 pt-2">
+    <div
+      id={"#{@parent_id}-section-body-#{@section_id}"}
+      role="region"
+      aria-labelledby={"#{@parent_id}-section-header-#{@section_id}"}
+      class="px-3 pb-3 flex flex-col gap-1 border-t border-base-content/10 pt-2"
+    >
       {#for {rule_id, rule_meta} <- Keyword.get(@section_data, :rules, [])}
         {#if @mode == :entity}
           <StatelessComponent
@@ -118,7 +125,7 @@
             phx-click="toggle_add_custom"
             phx-value-id={@section_id}
             phx-target={@target}
-            class="btn btn-xs btn-ghost self-start mt-1 text-base-content/50 hover:text-base-content"
+            class="btn btn-sm btn-ghost self-start mt-1 text-base-content/60 hover:text-base-content"
           >
             + {if @mode == :entity, do: l("Add custom rule"), else: l("Add rule")}
           </button>

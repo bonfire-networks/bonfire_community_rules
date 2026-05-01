@@ -1,7 +1,7 @@
 <div>
   <label
     id={"#{@parent_id}-rule-label-#{@section_id}-#{@rule_id}"}
-    class="flex items-center gap-3 cursor-pointer py-1.5 px-2 rounded-lg hover:bg-base-200 transition-colors"
+    class="flex items-center gap-3 cursor-pointer py-1.5 px-2 rounded-lg hover:bg-base-200 focus-within:bg-base-200 transition-colors"
   >
     <input
       type="checkbox"
@@ -21,23 +21,25 @@
       id={"#{@parent_id}-qualifier-block-#{@section_id}-#{@rule_id}"}
       phx-change="set_qualifier"
       phx-target={@target}
-      class="ml-8 mt-1 mb-2 p-3 bg-base-200 rounded-xl flex flex-col gap-1"
+      class="ml-8 mt-1 mb-2 p-3 bg-base-200 rounded-xl"
     >
       <input type="hidden" name="key" value={"#{@section_id}:#{@rule_id}"}>
-      <div class="text-xs font-semibold text-base-content/60 mb-1">{l("Enforcement")}</div>
-      {#for {val, label} <- Bonfire.CommunityRules.Qualifier.options()}
-        <label class="flex items-center gap-2 cursor-pointer py-0.5">
-          <input
-            type="radio"
-            name="value"
-            value={val}
-            class="radio radio-xs radio-primary"
-            checked={Map.get(@qualifiers, "#{@section_id}:#{@rule_id}") == val}
-            disabled={@read_only}
-          />
-          <span class="text-sm">{label}</span>
-        </label>
-      {/for}
+      <fieldset class="flex flex-col gap-1">
+        <legend class="text-xs font-semibold text-base-content/70 mb-1">{l("Enforcement")}</legend>
+        {#for {val, label} <- Bonfire.CommunityRules.Qualifier.options()}
+          <label class="flex items-center gap-2 cursor-pointer py-0.5">
+            <input
+              type="radio"
+              name="value"
+              value={val}
+              class="radio radio-xs radio-primary"
+              checked={Map.get(@qualifiers, "#{@section_id}:#{@rule_id}") == val}
+              disabled={@read_only}
+            />
+            <span class="text-sm">{label}</span>
+          </label>
+        {/for}
+      </fieldset>
     </form>
   {/if}
 </div>

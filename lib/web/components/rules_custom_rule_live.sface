@@ -1,11 +1,11 @@
 <div
   id={"#{@parent_id}-custom-rule-#{@section_id}-#{@rule["id"]}"}
-  class="flex items-center gap-2 px-2 py-1.5 rounded-lg group hover:bg-base-200"
+  class="flex items-center gap-2 px-2 py-1.5 rounded-lg group hover:bg-base-200 focus-within:bg-base-200"
   data-sortable-item={@rule["id"]}
 >
   {#if !@read_only}
-    <span class="cursor-grab text-base-content/30 hover:text-base-content/60 shrink-0">
-      <#Icon iconify="ph:dots-six-vertical" class="w-3.5 h-3.5" />
+    <span aria-hidden="true" class="cursor-grab text-base-content/30 hover:text-base-content/60 shrink-0 p-1">
+      <#Icon iconify="ph:dots-six-vertical" class="w-4 h-4" />
     </span>
     <form
       id={"#{@parent_id}-custom-rule-edit-form-#{@section_id}-#{@rule["id"]}"}
@@ -19,7 +19,7 @@
         type="text"
         name="name"
         value={@rule["name"]}
-        class="input input-xs input-ghost flex-1 min-w-0 focus:input-bordered"
+        class="input input-sm input-ghost flex-1 min-w-0 focus:input-bordered"
         placeholder={l("Rule name...")}
       />
       {#if @mode == :entity && @rule["qualifier"]}
@@ -29,10 +29,10 @@
       {/if}
       <button
         type="submit"
-        class="btn btn-xs btn-ghost opacity-0 group-hover:opacity-100 shrink-0"
+        class="btn btn-sm btn-ghost btn-square shrink-0 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100"
         aria-label={l("Save")}
       >
-        <#Icon iconify="ph:check" class="w-3.5 h-3.5" />
+        <#Icon iconify="ph:check" class="w-4 h-4" />
       </button>
     </form>
     <button
@@ -40,10 +40,10 @@
       phx-value-section={@section_id}
       phx-value-rule={@rule["id"]}
       phx-target={@target}
-      class="btn btn-xs btn-ghost text-error opacity-0 group-hover:opacity-100 shrink-0"
-      aria-label={l("Delete")}
+      class="btn btn-sm btn-ghost btn-square text-error shrink-0 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100"
+      aria-label={l("Delete rule")}
     >
-      <#Icon iconify="ph:trash" class="w-3.5 h-3.5" />
+      <#Icon iconify="ph:trash" class="w-4 h-4" />
     </button>
   {#else}
     <span class="text-sm flex-1">{@rule["name"]}</span>
