@@ -4,7 +4,10 @@
   data-sortable-item={@rule["id"]}
 >
   {#if !@read_only}
-    <span aria-hidden="true" class="cursor-grab text-base-content/30 hover:text-base-content/60 shrink-0 p-1">
+    <span
+      aria-hidden="true"
+      class="cursor-grab text-base-content/30 hover:text-base-content/60 shrink-0 p-1"
+    >
       <#Icon iconify="ph:dots-six-vertical" class="w-4 h-4" />
     </span>
     <form
