@@ -26,58 +26,8 @@
         </p>
       </div>
     {/if}
-    {#if !@read_only}
-      <div class="flex gap-2">
-        <button
-          id={"#{@id}-export-json-btn"}
-          phx-click="show_export"
-          phx-value-format="json"
-          phx-target={@myself}
-          class="btn btn-sm btn-ghost gap-1"
-        >
-          <#Icon iconify="ph:export" class="w-4 h-4" />{l("Export JSON")}
-        </button>
-        <button
-          id={"#{@id}-export-elixir-btn"}
-          phx-click="show_export"
-          phx-value-format="elixir"
-          phx-target={@myself}
-          class="btn btn-sm btn-ghost gap-1"
-        >
-          <#Icon iconify="ph:code" class="w-4 h-4" />{l("Export config")}
-        </button>
-      </div>
-    {/if}
-  </div>
 
-  {!-- Sections --}
-  {#for {top_key, top_val} <- @template}
-    <div>
-      <div class="text-xs font-bold uppercase tracking-widest text-base-content/40 mb-3">
-        {Keyword.get(top_val, :name, to_string(top_key))}
-      </div>
-      <div class="flex flex-col gap-2">
-        {#for {section_id, section_data} <- Keyword.get(top_val, :sections, [])}
-          <StatelessComponent
-            module={maybe_component(Bonfire.CommunityRules.Web.RulesSectionLive, @__context__)}
-            parent_id={@id}
-            section_id={to_string(section_id)}
-            section_data={section_data}
-            mode={@mode}
-            checked={@checked}
-            qualifiers={@qualifiers}
-            custom_rules={@custom_rules}
-            open_sections={@open_sections}
-            add_custom_mode={@add_custom_mode}
-            read_only={@read_only}
-            target={@myself}
-          />
-        {/for}
-      </div>
-    </div>
-  {/for}
-
-  {!-- Summary panel (entity mode only) --}
+      {!-- Summary panel (entity mode only) --}
   {#if @mode == :entity}
     {#case Bonfire.CommunityRules.Web.RulesBuilderLive.selected_summary(
         @checked,
@@ -111,6 +61,57 @@
         </div>
     {/case}
   {/if}
+  </div>
+
+  {!-- Sections --}
+  {#for {top_key, top_val} <- @template}
+    <div>
+      <div class="text-xs font-bold uppercase tracking-widest text-base-content/40 mb-3">
+        {Keyword.get(top_val, :name, to_string(top_key))}
+      </div>
+      <div class="flex flex-col gap-2">
+        {#for {section_id, section_data} <- Keyword.get(top_val, :sections, [])}
+          <StatelessComponent
+            module={maybe_component(Bonfire.CommunityRules.Web.RulesSectionLive, @__context__)}
+            parent_id={@id}
+            section_id={to_string(section_id)}
+            section_data={section_data}
+            mode={@mode}
+            checked={@checked}
+            qualifiers={@qualifiers}
+            custom_rules={@custom_rules}
+            open_sections={@open_sections}
+            add_custom_mode={@add_custom_mode}
+            read_only={@read_only}
+            target={@myself}
+          />
+        {/for}
+      </div>
+    </div>
+  {/for}
+
+{#if !@read_only}
+      <div class="flex gap-2">
+        <button
+          id={"#{@id}-export-json-btn"}
+          phx-click="show_export"
+          phx-value-format="json"
+          phx-target={@myself}
+          class="btn btn-sm gap-1"
+        >
+          <#Icon iconify="ph:export" class="w-4 h-4" />{l("Export JSON")}
+        </button>
+        <button
+          id={"#{@id}-export-elixir-btn"}
+          phx-click="show_export"
+          phx-value-format="elixir"
+          phx-target={@myself}
+          class="btn btn-sm gap-1"
+        >
+          <#Icon iconify="ph:code" class="w-4 h-4" />{l("Export config")}
+        </button>
+      </div>
+    {/if}
 
   {!-- Save button (settings mode only — entity mode auto-saves) --}
   {#if !@read_only && @mode == :settings}
