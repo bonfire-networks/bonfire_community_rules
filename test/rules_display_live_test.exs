@@ -1,8 +1,29 @@
 defmodule Bonfire.CommunityRules.RulesDisplayLiveTest do
   use Bonfire.CommunityRules.ConnCase, async: false
+  use Bonfire.Common.Settings
   @moduletag :ui
 
   @url "/rules"
+
+  @test_template [
+    behavior: [
+      name: "Behavior",
+      sections: [
+        civility: [
+          name: "Civility",
+          rules: [
+            be_respectful: %{name: "Be respectful"}
+          ]
+        ],
+        spam: [
+          name: "Spam",
+          rules: [
+            no_spam: %{name: "No spam", has_qualifier: true}
+          ]
+        ]
+      ]
+    ]
+  ]
 
   describe "instance rules page - no rules set" do
     test "renders without crashing when logged out" do
@@ -22,6 +43,12 @@ defmodule Bonfire.CommunityRules.RulesDisplayLiveTest do
     setup do
       account = fake_account!()
       admin = fake_admin!(account)
+
+      Settings.put([:bonfire_community_rules, :template_rules], @test_template,
+        scope: :instance,
+        skip_boundary_check: true
+      )
+
       conn = conn(user: admin, account: account)
       {:ok, conn: conn, admin: admin}
     end

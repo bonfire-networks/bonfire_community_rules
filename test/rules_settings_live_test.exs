@@ -9,6 +9,26 @@ defmodule Bonfire.CommunityRules.RulesSettingsLiveTest do
   @tmpl "#rules-builder-settings"
   @inst "#instance-rules-builder"
 
+  @test_template [
+    behavior: [
+      name: "Behavior",
+      sections: [
+        civility: [
+          name: "Civility",
+          rules: [
+            be_respectful: %{name: "Be respectful"}
+          ]
+        ],
+        spam: [
+          name: "Spam",
+          rules: [
+            no_spam: %{name: "No spam", has_qualifier: true}
+          ]
+        ]
+      ]
+    ]
+  ]
+
   setup do
     account = fake_account!()
     admin = fake_admin!(account)
@@ -17,11 +37,26 @@ defmodule Bonfire.CommunityRules.RulesSettingsLiveTest do
   end
 
   describe "RulesTemplatesLive - template editing" do
+    setup %{admin: admin} do
+      Settings.put([:bonfire_community_rules, :template_rules], @test_template,
+        scope: :instance,
+        skip_boundary_check: true
+      )
+
+      :ok
+    end
+
     test "renders rules template settings page", %{conn: conn} do
       conn
       |> visit(@url)
       # |> open_browser()
-      |> assert_has("#{@tmpl} h2", text: "Rules Template")
+      |> assert_has("h2", text: "Community Rules")
+    end
+
+    test "Rules Template title does not appear twice inside the component", %{conn: conn} do
+      conn
+      |> visit(@url)
+      |> refute_has("#{@tmpl} h2", text: "Rules Template")
     end
 
     test "renders template sections from config", %{conn: conn} do
@@ -69,7 +104,36 @@ defmodule Bonfire.CommunityRules.RulesSettingsLiveTest do
     end
   end
 
+  describe "RulesTemplatesLive - empty template (no preset sections)" do
+    test "shows add-rule button when template has no preset sections", %{conn: conn} do
+      conn
+      |> visit(@url)
+      |> assert_has("#{@tmpl} [id^=rules-builder-settings-add-custom-btn-]")
+    end
+
+    test "admin can add a rule when no preset sections exist", %{conn: conn} do
+      conn
+      |> visit(@url)
+      |> click_button("#rules-builder-settings-add-custom-btn-behavior_custom", "+ Add rule")
+      |> fill_in("Rule name...", with: "Be kind")
+      |> click_button(
+        "#rules-builder-settings-add-custom-form-behavior_custom button[type=submit]",
+        "Add"
+      )
+      |> assert_has("#{@tmpl} [id^=rules-builder-settings-tmpl-rule-]", text: "Be kind")
+    end
+  end
+
   describe "InstanceRulesLive - instance entity rules" do
+    setup %{admin: admin} do
+      Settings.put([:bonfire_community_rules, :template_rules], @test_template,
+        scope: :instance,
+        skip_boundary_check: true
+      )
+
+      :ok
+    end
+
     test "renders instance rules settings page", %{conn: conn} do
       conn
       |> visit(@url)

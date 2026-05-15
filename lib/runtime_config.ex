@@ -17,6 +17,9 @@ defmodule Bonfire.CommunityRules.RuntimeConfig do
       behavior: [
         name: l("Behavior"),
         sections: [
+          behavior_custom: [
+            rules: []
+          ]
           # civility: [
           #   name: l("Civility & good-faith participation"),
           #   rules: [
@@ -123,6 +126,9 @@ defmodule Bonfire.CommunityRules.RuntimeConfig do
       content: [
         name: l("Content"),
         sections: [
+          content_custom: [
+            rules: []
+          ]
           # cw: [
           #   name: l("Content warnings & sensitive media labeling"),
           #   rules: [
