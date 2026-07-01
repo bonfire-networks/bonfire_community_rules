@@ -12,7 +12,7 @@ defmodule Bonfire.CommunityRules do
   alias Bonfire.CommunityRules.Changesets
 
   declare_extension(
-    "Community Rules",
+    l("Community Rules"),
     icon: "bi:app",
     description: l("Community governance extension")
     # default_nav: [
