@@ -18,7 +18,7 @@
           </div>
           <#Icon
             iconify="ph:caret-down-bold"
-            class="w-3.5 h-3.5 text-base-content/60 transition-transform duration-200 group-open:rotate-180"
+            class="w-3.5 h-3.5 text-muted transition-transform duration-200 group-open:rotate-180"
             aria-hidden="true"
           />
         </summary>
