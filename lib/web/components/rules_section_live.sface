@@ -132,7 +132,7 @@
             phx-click="toggle_add_custom"
             phx-value-id={@section_id}
             phx-target={@target}
-            class="btn btn-sm btn-ghost self-start mt-1 text-base-content/60 hover:text-base-content"
+            class="btn btn-sm btn-ghost self-start mt-1 text-muted hover:text-base-content"
           >
             + {if @mode == :entity, do: l("Add custom rule"), else: l("Add rule")}
           </button>

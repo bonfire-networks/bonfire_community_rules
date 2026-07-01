@@ -11,7 +11,7 @@
           <div class="flex items-center gap-2.5 text-base font-semibold text-base-content">
             <#Icon
               iconify="ph:scales-duotone"
-              class="w-[18px] h-[18px] text-base-content/70"
+              class="w-[18px] h-[18px] text-base-content"
               aria-hidden="true"
             />
             <span>{@title || l("Rules")}</span>
