@@ -81,6 +81,18 @@ defmodule Bonfire.CommunityRules do
     get_extra_info_by_id(Settings.instance_scope())
   end
 
+  @doc "Returns the display-ready rules sections for the local instance (loading and hydrating the entity once). Returns `[]` when none are set."
+  def get_instance_rules_sections do
+    get_extra_info_for_instance()
+    |> get_entity_rules_sections()
+  end
+
+  @doc "Returns the display-ready rules sections for the given entity or extra_info (see `selected_rules/4` for the shape)."
+  def get_entity_rules_sections(entity) do
+    {checked, qualifiers, custom_rules} = hydrate_entity(entity)
+    selected_rules(checked, qualifiers, custom_rules, template(:instance))
+  end
+
   @doc "Returns the ExtraInfo struct for any entity by ID (returns an empty struct if not yet saved)."
   def get_extra_info_by_id(id) do
     repo().get(Bonfire.Data.Identity.ExtraInfo, id) ||

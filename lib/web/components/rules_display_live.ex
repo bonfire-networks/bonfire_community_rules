@@ -6,21 +6,20 @@ defmodule Bonfire.CommunityRules.Web.RulesDisplayLive do
 
   prop entity_id, :any, default: nil
   prop entity, :any, default: nil
+  prop sections, :list, default: nil
   prop title, :string, default: nil
   prop show_header, :boolean, default: true
 
   def update(assigns, socket) do
-    entity =
-      assigns[:entity] ||
-        case assigns[:entity_id] do
-          nil -> nil
-          id -> CommunityRules.get_extra_info_by_id(id)
-        end
-
-    {checked, qualifiers, custom_rules} = CommunityRules.hydrate_entity(entity)
-    template = CommunityRules.template(:instance)
-
-    sections = CommunityRules.selected_rules(checked, qualifiers, custom_rules, template)
+    # reuse pre-computed sections if given, otherwise load & hydrate the entity (once, via CommunityRules)
+    sections =
+      assigns[:sections] ||
+        (assigns[:entity] ||
+           case assigns[:entity_id] do
+             nil -> nil
+             id -> CommunityRules.get_extra_info_by_id(id)
+           end)
+        |> CommunityRules.get_entity_rules_sections()
 
     {:ok,
      socket
