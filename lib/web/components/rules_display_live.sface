@@ -8,7 +8,7 @@
         class="group rounded-box border border-base-content/15 bg-base-100 [&_summary::-webkit-details-marker]:hidden pb-4"
       >
         <summary class="list-none cursor-pointer flex items-center justify-between gap-3 px-5 py-4 select-none rounded-t-box hover:bg-base-200/50 transition-colors">
-          <div class="flex items-center gap-2.5 text-base font-semibold text-base-content">
+          <div class="flex items-center gap-2.5 text-base font-medium text-base-content">
             <#Icon
               iconify="ph:scales-duotone"
               class="w-[18px] h-[18px] text-base-content"
