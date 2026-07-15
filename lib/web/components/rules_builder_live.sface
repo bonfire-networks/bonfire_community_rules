@@ -43,7 +43,7 @@
               <h3 class="card-title text-base">{l("Selected rules")}</h3>
               {#for {group_name, rules} <- summary}
                 <div>
-                  <div class="text-xs font-medium text-base-content/50 uppercase tracking-wide mb-1">{group_name}</div>
+                  <div class="text-xs font-medium text-muted uppercase tracking-wide mb-1">{group_name}</div>
                   <ul class="flex flex-col gap-0.5">
                     {#for rule <- rules}
                       <li class="text-sm flex items-center gap-2">

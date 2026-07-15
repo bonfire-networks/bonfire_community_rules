@@ -1,6 +1,6 @@
 {!-- Unnamed sections (e.g. the always-present custom bucket) are always open with no collapsible header --}
 <div class={if Keyword.get(@section_data, :name),
-  do: "border border-base-content/10 rounded-xl bg-base-100 overflow-hidden",
+  do: "border border-secondary rounded-xl bg-base-100 overflow-hidden",
   else: ""}>
   {#if Keyword.get(@section_data, :name)}
     <button
@@ -38,7 +38,7 @@
       role="region"
       aria-labelledby={"#{@parent_id}-section-header-#{@section_id}"}
       class={if Keyword.get(@section_data, :name),
-        do: "px-3 pb-3 flex flex-col gap-1 border-t border-base-content/10 pt-2",
+        do: "px-3 pb-3 flex flex-col gap-1 border-t border-secondary pt-2",
         else: "flex flex-col gap-1"}
     >
       {#for {rule_id, rule_meta} <- Keyword.get(@section_data, :rules, [])}
