@@ -22,7 +22,9 @@
               <span class="badge badge-primary badge-sm">{n} {l("selected")}</span>
           {/case}
         {#else}
-          <span class="badge badge-ghost badge-sm">{length(Keyword.get(@section_data, :rules, []))} {l("rules")}</span>
+          <span class="badge badge-ghost badge-sm">{lp("%{count} rule", "%{count} rules", length(Keyword.get(@section_data, :rules, [])),
+              count: length(Keyword.get(@section_data, :rules, []))
+            )}</span>
         {/if}
         <Iconify.iconify
           icon={if Map.get(@open_sections, @section_id, false), do: "ph:caret-up-bold", else: "ph:caret-down-bold"}
