@@ -7,6 +7,19 @@ defmodule Bonfire.CommunityRules.RuntimeConfig do
   def config do
     import Config
 
+    # One getting-started step, declared here because the rules are this extension's feature. They are a widget rather than a page, so the step shows them where it stands instead of sending anyone off to read them. Nothing can detect having read something, so it completes by hand. The list merges with what every other extension declares, and the widget that shows it holds no steps of its own
+    config :bonfire_ui_common, Bonfire.UI.Common.WidgetGettingStartedLive,
+      actions_registry: [
+        read_rules: %{
+          title: l("Read the community rules"),
+          rationale: l("What the people here expect of each other, in short."),
+          cta_kind: :stateless_component,
+          cta_component: Bonfire.CommunityRules.Web.InstanceRulesDisplayLive,
+          cta_path: nil,
+          needs: Bonfire.CommunityRules.Web.InstanceRulesDisplayLive
+        }
+      ]
+
     config :bonfire_community_rules, :qualifier_labels,
       yes: l("Allowed"),
       no: l("Not allowed"),
