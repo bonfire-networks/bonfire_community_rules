@@ -26,7 +26,6 @@
         </p>
       </div>
     {/if}
-
     {!-- Summary panel (entity mode only) --}
     {#if @mode == :entity}
       {#case Bonfire.CommunityRules.Web.RulesBuilderLive.selected_summary(
