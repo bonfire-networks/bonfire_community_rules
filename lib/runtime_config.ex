@@ -16,7 +16,10 @@ defmodule Bonfire.CommunityRules.RuntimeConfig do
           cta_kind: :stateless_component,
           cta_component: Bonfire.CommunityRules.Web.InstanceRulesDisplayLive,
           cta_path: nil,
-          needs: Bonfire.CommunityRules.Web.InstanceRulesDisplayLive
+          # having the extension is not the same as having written any rules, and a step that shows an empty list asks somebody to read nothing
+          needs: &Bonfire.CommunityRules.any_rules?/0,
+          # where there are none, the code of conduct is the nearest thing that answers the same question, unless this instance is showing that as a step of its own
+          fallback: :read_coc
         }
       ]
 

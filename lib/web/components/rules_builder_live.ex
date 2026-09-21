@@ -2,6 +2,7 @@ defmodule Bonfire.CommunityRules.Web.RulesBuilderLive do
   use Bonfire.UI.Common.Web, :stateful_component
   use Bonfire.Common.Settings
 
+  alias Bonfire.CommunityRules
   alias Bonfire.CommunityRules.Localise
   alias Bonfire.CommunityRules.Qualifier
   alias Bonfire.CommunityRules.Changesets
@@ -273,26 +274,9 @@ defmodule Bonfire.CommunityRules.Web.RulesBuilderLive do
   defp maybe_auto_save(socket), do: socket
 
   defp persist_entity_rules(socket) do
-    entity = socket.assigns.entity
-    rules = build_rules_map(socket.assigns)
-
-    extra_info =
-      case entity do
-        %Bonfire.Data.Identity.ExtraInfo{} = ei ->
-          ei
-
-        _ ->
-          case e(entity, :extra_info, nil) do
-            %Bonfire.Data.Identity.ExtraInfo{} = ei -> ei
-            _ -> %Bonfire.Data.Identity.ExtraInfo{id: e(entity, :id, nil)}
-          end
-      end
-
-    changeset = Changesets.cast_rules_changeset(extra_info, rules)
-
-    case repo().insert(changeset, on_conflict: {:replace, [:info]}, conflict_target: :id) do
-      {:ok, _} -> socket
-      {:error, _cs} -> assign_flash(socket, :error, l("Could not save rules"))
+    case CommunityRules.save_rules(socket.assigns.entity, build_rules_map(socket.assigns)) do
+      {:ok, _saved} -> socket
+      _ -> assign_flash(socket, :error, l("Could not save rules"))
     end
   end
 

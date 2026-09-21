@@ -7,6 +7,7 @@ defmodule Bonfire.CommunityRules do
   use Bonfire.Common.E
   import Untangle
   import Bonfire.Common.Modularity.DeclareHelpers
+  alias Bonfire.Common.Cache
   alias Bonfire.Common.Utils
   alias Bonfire.Common.E
   alias Bonfire.CommunityRules.Changesets
@@ -66,14 +67,32 @@ defmodule Bonfire.CommunityRules do
   end
 
   @doc "Persists a rules map for the given entity ID. Returns `{:ok, extra_info}` or `{:error, reason}`."
-  def save_rules(entity_id, rules) when is_binary(entity_id) and is_map(rules) do
-    extra_info = get_extra_info_by_id(entity_id)
-    changeset = Changesets.cast_rules_changeset(extra_info, rules)
+  def save_rules(entity_or_id, rules)
 
-    repo().insert(changeset,
+  def save_rules(entity_id, rules) when is_binary(entity_id) and is_map(rules) do
+    get_extra_info_by_id(entity_id)
+    |> save_rules(rules)
+  end
+
+  def save_rules(%Bonfire.Data.Identity.ExtraInfo{} = extra_info, rules) when is_map(rules) do
+    Changesets.cast_rules_changeset(extra_info, rules)
+    |> repo().insert(
       on_conflict: {:replace, [:info]},
       conflict_target: :id
     )
+    |> tap(fn
+      # every clause above comes through here, so nothing can write rules and leave what was read about them behind
+      {:ok, _saved} -> Cache.reset({__MODULE__, :load_instance_rules_sections}, [])
+      _ -> nil
+    end)
+  end
+
+  # anything else that carries an `extra_info`, so that a caller holding the thing the rules are about does not have to know how they are stored
+  def save_rules(entity, rules) when is_map(rules) do
+    case e(entity, :extra_info, nil) do
+      %Bonfire.Data.Identity.ExtraInfo{} = extra_info -> save_rules(extra_info, rules)
+      _ -> save_rules(%Bonfire.Data.Identity.ExtraInfo{id: e(entity, :id, nil)}, rules)
+    end
   end
 
   @doc "Returns the ExtraInfo struct for the local instance (creates an empty one if not yet saved)."
@@ -81,8 +100,17 @@ defmodule Bonfire.CommunityRules do
     get_extra_info_by_id(Settings.instance_scope())
   end
 
-  @doc "Returns the display-ready rules sections for the local instance (loading and hydrating the entity once). Returns `[]` when none are set."
+  @doc """
+  Returns the display-ready rules sections for the local instance (loading and hydrating the entity once). Returns `[]` when none are set.
+
+  Cached, because in one render more than one thing asks for the same rules: whether there are any worth showing somebody (`any_rules?/1`) and then the rules themselves. `save_rules/2` forgets it, so an admin sees their own edit rather than waiting for an expiry.
+  """
   def get_instance_rules_sections do
+    Cache.maybe_apply_cached({__MODULE__, :load_instance_rules_sections}, [])
+  end
+
+  @doc false
+  def load_instance_rules_sections do
     get_extra_info_for_instance()
     |> get_entity_rules_sections()
   end
@@ -91,6 +119,18 @@ defmodule Bonfire.CommunityRules do
   def get_entity_rules_sections(entity) do
     {checked, qualifiers, custom_rules} = hydrate_entity(entity)
     selected_rules(checked, qualifiers, custom_rules, template(:instance))
+  end
+
+  @doc """
+  Whether there are any rules to show.
+
+  A rules map can exist and say nothing, since the template carries its custom sections whether or not anybody filled them in, so this asks for at least one selected rule rather than for the map. What decides whether a widget or a prompt about the rules is worth putting in front of anybody. Takes already-loaded sections where the caller has them.
+  """
+  def any_rules?(sections \\ nil) do
+    (sections || get_instance_rules_sections())
+    |> Enum.any?(fn category ->
+      Enum.any?(e(category, :sections, []), &(e(&1, :rules, []) != []))
+    end)
   end
 
   @doc "Returns the ExtraInfo struct for any entity by ID (returns an empty struct if not yet saved)."
