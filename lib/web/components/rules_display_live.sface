@@ -17,7 +17,7 @@
             <span>{@title || l("Rules")}</span>
           </div>
           <#Icon
-            iconify="carbon:chevron-down-bold"
+            iconify="carbon:chevron-down"
             class="w-3.5 h-3.5 text-muted transition-transform duration-200 group-open:rotate-180"
             aria-hidden="true"
           />

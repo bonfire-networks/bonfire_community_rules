@@ -27,7 +27,7 @@
             )}</span>
         {/if}
         <Iconify.iconify
-          icon={if Map.get(@open_sections, @section_id, false), do: "carbon:chevron-up-bold", else: "carbon:chevron-down-bold"}
+          icon={if Map.get(@open_sections, @section_id, false), do: "carbon:chevron-up", else: "carbon:chevron-down"}
           class="w-4 h-4 text-base-content/40"
         />
       </div>
