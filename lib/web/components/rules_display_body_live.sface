@@ -1,11 +1,11 @@
-<ol class="list-none flex flex-col gap-3">
+<ol class={class_for(@classes, :list)}>
   {#for {rule, idx} <- Enum.with_index(all_rules(@sections), 1)}
-    <li class="flex items-baseline gap-3">
-      <span class="font-mono tabular-nums text-[11px] text-base-content/40 shrink-0 text-right">
+    <li class={class_for(@classes, :item)}>
+      <span class={class_for(@classes, :index)}>
         {idx}
       </span>
       <div class="flex-1 flex flex-wrap items-baseline gap-x-2 gap-y-1">
-        <span class="text-[14px] leading-snug text-base-content/85">{e(rule, :name, nil)}</span>
+        <span class={class_for(@classes, :name)}>{e(rule, :name, nil)}</span>
         {#case e(rule, :qualifier, nil)}
           {#match nil}
           {#match q}

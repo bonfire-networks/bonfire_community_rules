@@ -5,4 +5,5 @@
   sections={@sections}
   entity_id={Bonfire.Common.Settings.instance_scope()}
   show_header={@show_header}
+  classes={@classes}
 />

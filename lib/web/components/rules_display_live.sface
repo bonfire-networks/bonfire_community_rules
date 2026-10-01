@@ -23,11 +23,11 @@
           />
         </summary>
         <div class="px-5 pb-5 pt-1">
-          <Bonfire.CommunityRules.Web.RulesDisplayBodyLive sections={@sections} />
+          <Bonfire.CommunityRules.Web.RulesDisplayBodyLive sections={@sections} classes={@classes} />
         </div>
       </details>
     {#else}
-      <Bonfire.CommunityRules.Web.RulesDisplayBodyLive sections={@sections} />
+      <Bonfire.CommunityRules.Web.RulesDisplayBodyLive sections={@sections} classes={@classes} />
     {/if}
   {/if}
 </div>

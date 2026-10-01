@@ -10,6 +10,9 @@ defmodule Bonfire.CommunityRules.Web.RulesDisplayLive do
   prop title, :string, default: nil
   prop show_header, :boolean, default: true
 
+  @doc "Optional class overrides for the rules list, as a map with any of `:list`, `:item`, `:index`, `:name` (see `RulesDisplayBodyLive`)."
+  prop classes, :map, default: %{}
+
   def update(assigns, socket) do
     # reuse pre-computed sections if given, otherwise load & hydrate the entity (once, via CommunityRules)
     sections =
