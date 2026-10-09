@@ -1,6 +1,6 @@
 <div
   id={"#{@parent_id}-tmpl-rule-#{@section_id}-#{@rule_id}"}
-  class="flex items-center gap-2 px-2 py-1.5 rounded-lg group hover:bg-base-200"
+  class="flex items-center gap-2 px-2 py-1.5 rounded-selector group hover:bg-base-200"
 >
   {!-- View mode --}
   <div

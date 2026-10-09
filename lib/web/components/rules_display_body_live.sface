@@ -10,7 +10,7 @@
           {#match nil}
           {#match q}
             <span class={
-              "inline-flex items-center px-1.5 py-px rounded-md text-[11px] font-medium",
+              "inline-flex items-center px-1.5 py-px rounded-md text-xs font-medium",
               "bg-error/10 text-error": q == "no",
               "bg-success/10 text-success": q == "yes",
               "bg-warning/15 text-warning": q in ["with_label", "with_approval"]

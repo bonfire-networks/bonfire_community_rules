@@ -1,6 +1,6 @@
 {!-- Unnamed sections (e.g. the always-present custom bucket) are always open with no collapsible header --}
 <div class={if Keyword.get(@section_data, :name),
-  do: "border border-divider rounded-xl bg-base-100 overflow-hidden",
+  do: "border border-divider rounded-box bg-base-100 overflow-hidden",
   else: ""}>
   {#if Keyword.get(@section_data, :name)}
     <button
