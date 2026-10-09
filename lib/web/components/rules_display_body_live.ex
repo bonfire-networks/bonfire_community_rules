@@ -9,8 +9,8 @@ defmodule Bonfire.CommunityRules.Web.RulesDisplayBodyLive do
   @default_classes %{
     list: "list-none flex flex-col gap-3",
     item: "flex items-baseline gap-3",
-    index: "font-mono tabular-nums text-[11px] text-base-content/40 shrink-0 text-right",
-    name: "text-[14px] leading-snug text-base-content/85"
+    index: "font-mono tabular-nums text-[11px] text-subtle shrink-0 text-right",
+    name: "text-[14px] leading-snug text-base-content"
   }
 
   @doc """

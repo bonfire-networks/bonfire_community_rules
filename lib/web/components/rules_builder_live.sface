@@ -65,7 +65,7 @@
   {!-- Sections --}
   {#for {top_key, top_val} <- @template}
     <div>
-      <div class="text-xs font-bold uppercase tracking-widest text-base-content/40 mb-3">
+      <div class="text-xs font-bold uppercase tracking-widest text-subtle mb-3">
         {Keyword.get(top_val, :name, to_string(top_key))}
       </div>
       <div class="flex flex-col gap-2">
