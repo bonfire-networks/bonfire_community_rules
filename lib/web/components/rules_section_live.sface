@@ -30,7 +30,7 @@
           icon={if Map.get(@open_sections, @section_id, false),
             do: "carbon:chevron-up",
             else: "carbon:chevron-down"}
-          class="w-4 h-4 text-subtle"
+          class="size-4 text-subtle"
         />
       </div>
     </button>

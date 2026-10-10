@@ -21,7 +21,7 @@
         |> JS.show(to: "##{@parent_id}-tmpl-rule-edit-#{@section_id}-#{@rule_id}", display: "flex")
         |> JS.focus(to: "##{@parent_id}-tmpl-rule-input-#{@section_id}-#{@rule_id}")}
       >
-        <#Icon iconify="ph:pencil-simple" class="w-4 h-4" />
+        <#Icon iconify="ph:pencil-simple" class="size-4" />
       </button>
       <button
         phx-click="delete_template_rule"
@@ -31,7 +31,7 @@
         class="btn btn-sm btn-ghost btn-square text-error shrink-0 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100"
         aria-label={l("Delete rule")}
       >
-        <#Icon iconify="ph:trash" class="w-4 h-4" />
+        <#Icon iconify="ph:trash" class="size-4" />
       </button>
     {/if}
   </div>

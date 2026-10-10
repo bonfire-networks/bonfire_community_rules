@@ -5,7 +5,7 @@
 >
   {#if !@read_only}
     <span aria-hidden="true" class="cursor-grab text-subtle hover:text-muted shrink-0 p-1">
-      <#Icon iconify="ph:dots-six-vertical" class="w-4 h-4" />
+      <#Icon iconify="ph:dots-six-vertical" class="size-4" />
     </span>
     <form
       id={"#{@parent_id}-custom-rule-edit-form-#{@section_id}-#{@rule["id"]}"}
@@ -32,7 +32,7 @@
         class="btn btn-sm btn-ghost btn-square shrink-0 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100"
         aria-label={l("Save")}
       >
-        <#Icon iconify="ph:check" class="w-4 h-4" />
+        <#Icon iconify="ph:check" class="size-4" />
       </button>
     </form>
     <button
@@ -43,7 +43,7 @@
       class="btn btn-sm btn-ghost btn-square text-error shrink-0 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100"
       aria-label={l("Delete rule")}
     >
-      <#Icon iconify="ph:trash" class="w-4 h-4" />
+      <#Icon iconify="ph:trash" class="size-4" />
     </button>
   {#else}
     <span class="text-sm flex-1">{@rule["name"]}</span>

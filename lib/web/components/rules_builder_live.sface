@@ -98,7 +98,7 @@
         phx-target={@myself}
         class="btn btn-sm gap-1"
       >
-        <#Icon iconify="ph:export" class="w-4 h-4" />{l("Export JSON")}
+        <#Icon iconify="ph:export" class="size-4" />{l("Export JSON")}
       </button>
       <button
         id={"#{@id}-export-elixir-btn"}
@@ -107,7 +107,7 @@
         phx-target={@myself}
         class="btn btn-sm gap-1"
       >
-        <#Icon iconify="ph:code" class="w-4 h-4" />{l("Export config")}
+        <#Icon iconify="ph:code" class="size-4" />{l("Export config")}
       </button>
     </div>
   {/if}
