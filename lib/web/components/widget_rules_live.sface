@@ -1,0 +1,24 @@
+{#case Bonfire.CommunityRules.get_instance_rules_sections()}
+  {#match sections}
+    <Bonfire.UI.Common.WidgetBlockLive
+      :if={Bonfire.CommunityRules.any_rules?(sections)}
+      widget_title={@widget_title || l("Community rules")}
+    >
+      <:action>
+        <LinkLive
+          to="/rules"
+          label={l("All rules")}
+          class="tooltip-button btn btn-circle btn-ghost btn-xs"
+          data-tip={l("All rules")}
+        >
+          <#Icon iconify="ph:scales-duotone" class="size-4 text-muted" />
+        </LinkLive>
+      </:action>
+      <div data-id="widget_rules">
+        <Bonfire.CommunityRules.Web.RulesDisplayBodyLive
+          sections={sections}
+          classes={%{list: "list-none flex flex-col gap-2.5"}}
+        />
+      </div>
+    </Bonfire.UI.Common.WidgetBlockLive>
+{/case}
