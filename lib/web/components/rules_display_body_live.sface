@@ -9,12 +9,15 @@
         {#case e(rule, :qualifier, nil)}
           {#match nil}
           {#match q}
-            <span data-role="rule-qualifier" class={
-              "inline-flex items-center px-1.5 py-px rounded-md text-xs font-medium",
-              "bg-error/10 text-error": q == "no",
-              "bg-success/10 text-success": q == "yes",
-              "bg-warning/15 text-warning": q in ["with_label", "with_approval"]
-            }>{Bonfire.CommunityRules.Qualifier.label(q)}</span>
+            <span
+              data-role="rule-qualifier"
+              class={
+                "inline-flex items-center px-1.5 py-px rounded-md text-xs font-medium",
+                "bg-error/10 text-error": q == "no",
+                "bg-success/10 text-success": q == "yes",
+                "bg-warning/15 text-warning": q in ["with_label", "with_approval"]
+              }
+            >{Bonfire.CommunityRules.Qualifier.label(q)}</span>
         {/case}
       </div>
     </li>
