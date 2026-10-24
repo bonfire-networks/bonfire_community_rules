@@ -19,6 +19,25 @@
           sections={sections}
           classes={%{list: "list-none flex flex-col gap-2.5"}}
         />
+        {!-- rules past the 10th are hidden by CSS in app.css until this sets `data-expanded` --}
+        <div
+          :if={length(Bonfire.CommunityRules.Web.RulesDisplayBodyLive.all_rules(sections)) > 10}
+          class="flex justify-center mt-3"
+        >
+          <button
+            id="widget_rules_expand"
+            type="button"
+            data-role="widget_rules_expand"
+            aria-expanded="false"
+            phx-click={JS.toggle_attribute({"data-expanded", ""}, to: "[data-id=widget_rules]")
+            |> JS.toggle_attribute({"aria-expanded", "true", "false"})}
+            class="group inline-flex expand-pill"
+          >
+            <span class="group-aria-expanded:hidden">{l("Show more")}</span>
+            <span class="hidden group-aria-expanded:inline">{l("Show less")}</span>
+            <#Icon iconify="ph:caret-down-bold" class="w-3 h-3 transition-transform group-aria-expanded:rotate-180" />
+          </button>
+        </div>
       </div>
     </Bonfire.UI.Common.WidgetBlockLive>
 {/case}
