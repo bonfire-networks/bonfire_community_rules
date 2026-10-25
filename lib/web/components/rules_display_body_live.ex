@@ -6,6 +6,9 @@ defmodule Bonfire.CommunityRules.Web.RulesDisplayBodyLive do
   @doc "Optional class overrides, as a map with any of `:list`, `:item`, `:index`, `:name`."
   prop classes, :map, default: %{}
 
+  @doc "Show the first 10 rules behind a Show more pill. The cut is CSS (`[data-rules-collapsible]` in app.css) rather than a split list, so the numbering stays continuous."
+  prop collapsible, :boolean, default: false
+
   @default_classes %{
     list: "list-none flex flex-col gap-3",
     item: "flex items-baseline gap-3",
