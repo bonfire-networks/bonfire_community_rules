@@ -1,7 +1,14 @@
-<div data-rules-collapsible={@collapsible}>
+{!-- when collapsible, rules past `show_first` carry `data-extra` and stay hidden until the "Show all" checkbox is ticked (`[data-show-first]` in app.css): no JS, so it works on static guest pages, and the list isn't split so the numbering stays continuous --}
+<div data-show-first={@collapsible}>
+  <input
+    :if={@collapsible and length(all_rules(@sections)) > @show_first}
+    type="checkbox"
+    id={"#{@id}-all"}
+    class="sr-only"
+  />
   <ol class={class_for(@classes, :list)}>
     {#for {rule, idx} <- Enum.with_index(all_rules(@sections), 1)}
-      <li class={class_for(@classes, :item)}>
+      <li class={class_for(@classes, :item)} data-extra={@collapsible and idx > @show_first}>
         <span class={class_for(@classes, :index)}>
           {idx}
         </span>
@@ -24,19 +31,19 @@
       </li>
     {/for}
   </ol>
-  {!-- rules past the 10th are hidden by CSS in app.css until this sets `data-expanded` on the wrapper --}
-  <div :if={@collapsible and length(all_rules(@sections)) > 10} class="flex justify-center mt-3">
-    <button
-      type="button"
-      data-role="rules_expand"
-      aria-expanded="false"
-      phx-click={JS.toggle_attribute({"data-expanded", ""}, to: {:closest, "[data-rules-collapsible]"})
-      |> JS.toggle_attribute({"aria-expanded", "true", "false"})}
-      class="group inline-flex expand-pill"
+  <div
+    :if={(@collapsible and length(all_rules(@sections)) > @show_first) or slot_assigned?(:footer)}
+    class={class_for(@classes, :footer)}
+  >
+    <label
+      :if={@collapsible and length(all_rules(@sections)) > @show_first}
+      for={"#{@id}-all"}
+      data-role="show-all"
+      class={class_for(@classes, :show_all)}
     >
-      <span class="group-aria-expanded:hidden">{l("Show more")}</span>
-      <span class="hidden group-aria-expanded:inline">{l("Show less")}</span>
-      <#Icon iconify="ph:caret-down-bold" class="w-3 h-3 transition-transform group-aria-expanded:rotate-180" />
-    </button>
+      <span data-when="closed">{l("Show all %{count} rules", count: length(all_rules(@sections)))}</span>
+      <span data-when="open">{l("Show fewer")}</span>
+    </label>
+    <#slot {@footer} />
   </div>
 </div>

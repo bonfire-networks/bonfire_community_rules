@@ -3,17 +3,28 @@ defmodule Bonfire.CommunityRules.Web.RulesDisplayBodyLive do
 
   prop sections, :list, required: true
 
-  @doc "Optional class overrides, as a map with any of `:list`, `:item`, `:index`, `:name`."
+  @doc "Optional class overrides, as a map with any of `:list`, `:item`, `:index`, `:name`, and for the row under the list `:footer` and `:show_all`."
   prop classes, :map, default: %{}
 
-  @doc "Show the first 10 rules behind a Show more pill. The cut is CSS (`[data-rules-collapsible]` in app.css) rather than a split list, so the numbering stays continuous."
+  @doc "Show only the first `show_first` rules until \"Show all\" is ticked (a checkbox, see `[data-show-first]` in app.css)."
   prop collapsible, :boolean, default: false
+
+  @doc "How many rules a collapsible list shows before \"Show all\"."
+  prop show_first, :integer, default: 10
+
+  @doc "Prefix of the \"Show all\" checkbox id, unique per page."
+  prop id, :string, default: "rules-list"
+
+  @doc "Shown after the \"Show all\" toggle, on the same row (eg. a link to the code of conduct)."
+  slot footer
 
   @default_classes %{
     list: "list-none flex flex-col gap-3",
     item: "flex items-baseline gap-3",
     index: "font-mono tabular-nums text-xs text-subtle shrink-0 text-right",
-    name: "text-sm leading-snug text-base-content"
+    name: "text-sm leading-snug text-base-content",
+    footer: "flex justify-center mt-3",
+    show_all: "inline-flex expand-pill cursor-pointer"
   }
 
   @doc """

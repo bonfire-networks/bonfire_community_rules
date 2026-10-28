@@ -1,0 +1,31 @@
+{!-- rules in compact rows: the number in a 24px gutter, five shown until "Show all" --}
+<section id={@id} class={@class} aria-labelledby={"#{@id}-title"}>
+  <h2 id={"#{@id}-title"} class="flex items-baseline gap-2 text-lg font-bold leading-snug tracking-[-0.01em]">
+    {l("Community rules")}
+    <span class="text-sm font-normal tabular-nums text-muted">{rules_count(@sections)}</span>
+  </h2>
+  <Bonfire.CommunityRules.Web.RulesDisplayBodyLive
+    id={@id}
+    sections={@sections}
+    collapsible
+    show_first={5}
+    classes={%{
+      list: "mt-3",
+      item: "grid grid-cols-[24px_minmax(0,1fr)] items-baseline border-t border-base-content/10 py-2.5 first:border-t-0",
+      index: "text-sm tabular-nums text-muted",
+      name: "text-base font-medium leading-snug text-base-content",
+      footer: "mt-1 flex flex-wrap items-center gap-x-6 pl-6",
+      show_all: "inline-flex min-h-11 cursor-pointer items-center text-sm font-medium underline decoration-divider underline-offset-3 hover:decoration-current"
+    }}
+  >
+    <:footer>
+      <LinkLive
+        to="/conduct"
+        class="inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-muted underline-offset-3 hover:text-base-content hover:underline"
+      >
+        {l("Read the full code of conduct")}
+        <#Icon iconify="ph:arrow-right" class="size-4" aria-hidden="true" />
+      </LinkLive>
+    </:footer>
+  </Bonfire.CommunityRules.Web.RulesDisplayBodyLive>
+</section>
