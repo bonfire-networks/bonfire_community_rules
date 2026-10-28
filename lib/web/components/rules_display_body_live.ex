@@ -3,10 +3,10 @@ defmodule Bonfire.CommunityRules.Web.RulesDisplayBodyLive do
 
   prop sections, :list, required: true
 
-  @doc "Optional class overrides, as a map with any of `:list`, `:item`, `:index`, `:name`, and for the row under the list `:footer` and `:show_all`."
+  @doc "Class overrides, a map with any of `:list`, `:item`, `:index`, `:name`, `:footer`, `:show_all`."
   prop classes, :map, default: %{}
 
-  @doc "Show only the first `show_first` rules until \"Show all\" is ticked (a checkbox, see `[data-show-first]` in app.css)."
+  @doc "Show only the first `show_first` rules until \"Show all\" is ticked."
   prop collapsible, :boolean, default: false
 
   @doc "How many rules a collapsible list shows before \"Show all\"."
@@ -15,7 +15,7 @@ defmodule Bonfire.CommunityRules.Web.RulesDisplayBodyLive do
   @doc "Prefix of the \"Show all\" checkbox id, unique per page."
   prop id, :string, default: "rules-list"
 
-  @doc "Shown after the \"Show all\" toggle, on the same row (eg. a link to the code of conduct)."
+  @doc "Shown beside the \"Show all\" toggle."
   slot footer
 
   @default_classes %{

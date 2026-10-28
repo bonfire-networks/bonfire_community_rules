@@ -1,4 +1,3 @@
-{!-- rules in compact rows: the number in a 24px gutter, five shown until "Show all" --}
 <section id={@id} class={@class} aria-labelledby={"#{@id}-title"}>
   <h2 id={"#{@id}-title"} class="flex items-baseline gap-2 text-lg font-bold leading-snug tracking-[-0.01em]">
     {l("Community rules")}
