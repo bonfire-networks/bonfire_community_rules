@@ -1,4 +1,4 @@
-{!-- when collapsible, rules past `show_first` carry `data-extra` and stay hidden until the "Show all" checkbox is ticked (`[data-show-first]` in app.css): no JS, so it works on static guest pages, and the list isn't split so the numbering stays continuous --}
+{!-- a checkbox rather than JS, so it works on static guest pages; one list, so the numbering stays continuous --}
 <div data-show-first={@collapsible}>
   <input
     :if={@collapsible and length(all_rules(@sections)) > @show_first}
