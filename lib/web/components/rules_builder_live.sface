@@ -32,7 +32,7 @@
           @checked,
           @qualifiers,
           @custom_rules,
-          @template
+          @ordered_template
         )}
         {#match []}
           <div class="alert alert-info text-sm">{l("No rules selected yet.")}</div>
@@ -62,32 +62,75 @@
     {/if}
   </div>
 
-  {!-- Sections --}
-  {#for {top_key, top_val} <- @template}
-    <div>
-      <div class="text-xs font-bold uppercase tracking-widest text-subtle mb-3">
-        {Keyword.get(top_val, :name, to_string(top_key))}
-      </div>
-      <div class="flex flex-col gap-2">
-        {#for {section_id, section_data} <- Keyword.get(top_val, :sections, [])}
-          <StatelessComponent
-            module={maybe_component(Bonfire.CommunityRules.Web.RulesSectionLive, @__context__)}
-            parent_id={@id}
-            section_id={to_string(section_id)}
-            section_data={section_data}
-            mode={@mode}
-            checked={@checked}
-            qualifiers={@qualifiers}
-            custom_rules={@custom_rules}
-            open_sections={@open_sections}
-            add_custom_mode={@add_custom_mode}
-            read_only={@read_only}
-            target={@myself}
-          />
+  {!-- Categories, then their sections. An instance or group orders them by drag (desktop) or with the up/down buttons --}
+  {#case @mode == :entity and !@read_only}
+    {#match reorderable?}
+      <div
+        id={"#{@id}-categories"}
+        phx-hook={if reorderable?, do: "Draggable"}
+        data-event="reorder_categories"
+        phx-target={@myself}
+        class="flex flex-col gap-6"
+      >
+        {#for {{top_key, top_val}, category_index} <- Enum.with_index(@ordered_template)}
+          <div id={"#{@id}-category-#{top_key}"} data-sortable-item data-item={top_key}>
+            <div class="flex items-center gap-2 mb-3">
+              <span
+                :if={reorderable?}
+                data-sortable-handler
+                aria-hidden="true"
+                class="cursor-grab text-subtle hover:text-muted"
+              ><#Icon iconify="ph:dots-six-vertical" class="size-4" /></span>
+              <div class="flex-1 text-xs font-bold uppercase tracking-widest text-subtle">
+                {Keyword.get(top_val, :name, to_string(top_key))}
+              </div>
+              <div :if={reorderable?} class="join shrink-0">
+                <Bonfire.UI.Common.MoveButtonsLive
+                  id={Bonfire.CommunityRules.Web.RulesBuilderLive.move_id(@id, "category", nil, top_key)}
+                  values={%{kind: "category", item: top_key}}
+                  label={Keyword.get(top_val, :name, to_string(top_key))}
+                  first={category_index == 0}
+                  last={category_index == length(@ordered_template) - 1}
+                  target={@myself}
+                  class="btn btn-ghost btn-xs btn-square join-item"
+                />
+              </div>
+            </div>
+            <div
+              id={"#{@id}-sections-#{top_key}"}
+              phx-hook={if reorderable?, do: "Draggable"}
+              data-event="reorder_sections"
+              data-parent={top_key}
+              phx-target={@myself}
+              class="flex flex-col gap-2"
+            >
+              {#for {{section_id, section_data}, section_index} <-
+                  Enum.with_index(Keyword.get(top_val, :sections, []))}
+                <StatelessComponent
+                  module={maybe_component(Bonfire.CommunityRules.Web.RulesSectionLive, @__context__)}
+                  parent_id={@id}
+                  category_id={to_string(top_key)}
+                  section_id={to_string(section_id)}
+                  section_data={section_data}
+                  mode={@mode}
+                  checked={@checked}
+                  qualifiers={@qualifiers}
+                  inherited={@inherited}
+                  custom_rules={@custom_rules}
+                  open_sections={@open_sections}
+                  add_custom_mode={@add_custom_mode}
+                  read_only={@read_only}
+                  reorderable={reorderable?}
+                  first={section_index == 0}
+                  last={section_index == length(Keyword.get(top_val, :sections, [])) - 1}
+                  target={@myself}
+                />
+              {/for}
+            </div>
+          </div>
         {/for}
       </div>
-    </div>
-  {/for}
+  {/case}
 
   {#if !@read_only}
     <div class="flex gap-2">

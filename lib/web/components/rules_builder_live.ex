@@ -43,9 +43,10 @@ defmodule Bonfire.CommunityRules.Web.RulesBuilderLive do
 
     already_hydrated? = Map.has_key?(socket.assigns, :checked)
 
-    {checked, qualifiers, custom_rules} =
+    {checked, qualifiers, custom_rules, own_order, inherited} =
       if already_hydrated? do
-        {socket.assigns.checked, socket.assigns.qualifiers, socket.assigns.custom_rules}
+        {socket.assigns.checked, socket.assigns.qualifiers, socket.assigns.custom_rules,
+         socket.assigns.own_order, socket.assigns.inherited}
       else
         if mode == :entity do
           hydrate_source =
@@ -54,26 +55,60 @@ defmodule Bonfire.CommunityRules.Web.RulesBuilderLive do
               _ -> Bonfire.CommunityRules.get_extra_info_by_id(e(entity, :id, nil) || entity)
             end
 
-          Bonfire.CommunityRules.hydrate_entity(hydrate_source)
+          {checked, qualifiers, custom_rules} =
+            Bonfire.CommunityRules.hydrate_entity(hydrate_source)
+
+          {checked, qualifiers, custom_rules,
+           Bonfire.CommunityRules.own_rules_order(hydrate_source), inherited_rules(entity)}
         else
-          {%{}, %{}, %{}}
+          {%{}, %{}, %{}, %{}, %{}}
         end
       end
 
     {:ok,
-     assign(socket,
+     socket
+     |> assign(
        entity: entity,
        mode: mode,
        template: template,
        checked: checked,
        qualifiers: qualifiers,
        custom_rules: custom_rules,
+       inherited: inherited,
        open_sections: Map.get(socket.assigns, :open_sections, %{}),
        add_custom_mode: Map.get(socket.assigns, :add_custom_mode, %{}),
        export_format: Map.get(socket.assigns, :export_format),
        export_output: Map.get(socket.assigns, :export_output)
-     )}
+     )
+     |> assign_order(own_order)}
   end
+
+  # the instance's ticked rules, `key => qualifier`, which a group's rules can't untick. None on the instance's own page
+  defp inherited_rules(entity) do
+    if CommunityRules.instance?(entity) do
+      %{}
+    else
+      {checked, qualifiers, _} =
+        CommunityRules.hydrate_entity(CommunityRules.instance_extra_info())
+
+      Map.new(checked, fn {key, _} -> {key, Map.get(qualifiers, key)} end)
+    end
+  end
+
+  # the template in the order the entity shows it: its own, else the instance's, else the template's. The template editor keeps the template's
+  defp assign_order(%{assigns: %{mode: :entity}} = socket, own_order) do
+    assign(socket,
+      own_order: own_order,
+      ordered_template:
+        CommunityRules.order_template(
+          socket.assigns.template,
+          CommunityRules.inherit_rules_order(own_order, socket.assigns.entity)
+        )
+    )
+  end
+
+  defp assign_order(socket, own_order),
+    do: assign(socket, own_order: own_order, ordered_template: socket.assigns.template)
 
   def handle_event("toggle_section", %{"id" => section_id}, socket) do
     open = Map.get(socket.assigns.open_sections, section_id, false)
@@ -81,6 +116,11 @@ defmodule Bonfire.CommunityRules.Web.RulesBuilderLive do
     {:noreply,
      assign(socket, open_sections: Map.put(socket.assigns.open_sections, section_id, !open))}
   end
+
+  # the disabled box doesn't stop a crafted event
+  def handle_event(event, %{"key" => key}, %{assigns: %{inherited: inherited}} = socket)
+      when event in ["toggle_rule", "set_qualifier"] and is_map_key(inherited, key),
+      do: {:noreply, socket}
 
   def handle_event("toggle_rule", %{"key" => key}, socket) do
     checked = socket.assigns.checked
@@ -164,7 +204,7 @@ defmodule Bonfire.CommunityRules.Web.RulesBuilderLive do
     template =
       add_custom_to_template_section(socket.assigns.template, section_id, name, has_qualifier)
 
-    {:noreply, assign(socket, template: template)}
+    {:noreply, socket |> assign(template: template) |> assign_order(socket.assigns.own_order)}
   end
 
   def handle_event("add_template_custom_rule", _params, socket), do: {:noreply, socket}
@@ -176,66 +216,121 @@ defmodule Bonfire.CommunityRules.Web.RulesBuilderLive do
       )
       when name != "" do
     template = update_template_rule_name(socket.assigns.template, section_id, rule_id, name)
-    {:noreply, assign(socket, template: template)}
+    {:noreply, socket |> assign(template: template) |> assign_order(socket.assigns.own_order)}
   end
 
   def handle_event("update_template_rule", _params, socket), do: {:noreply, socket}
 
   def handle_event("delete_template_rule", %{"section" => section_id, "rule" => rule_id}, socket) do
     template = delete_from_template_section(socket.assigns.template, section_id, rule_id)
-    {:noreply, assign(socket, template: template)}
+    {:noreply, socket |> assign(template: template) |> assign_order(socket.assigns.own_order)}
   end
+
+  # replaced by the clauses below: the Draggable hook sends `parent_item`, never `group_id`, and this didn't save
+  # def handle_event(
+  #       "reorder_custom_rules",
+  #       %{"group_id" => group_id, "target_order" => order},
+  #       socket
+  #     ) do
+  #   customs = Map.get(socket.assigns.custom_rules, group_id, [])
+  #
+  #   reordered =
+  #     order
+  #     |> Enum.map(fn id_str ->
+  #       id = String.to_integer(id_str)
+  #       Enum.find(customs, &(&1["id"] == id))
+  #     end)
+  #     |> Enum.reject(&is_nil/1)
+  #
+  #   custom_rules = Map.put(socket.assigns.custom_rules, group_id, reordered)
+  #   {:noreply, assign(socket, custom_rules: custom_rules)}
+  # end
+
+  # replaced by "move" below, which moves every kind and saves
+  # def handle_event(
+  #       "move_custom_rule",
+  #       %{"section_id" => group_id, "rule_id" => rule_id_str, "direction" => direction},
+  #       socket
+  #     ) do
+  #   rule_id = String.to_integer(rule_id_str)
+  #   customs = Map.get(socket.assigns.custom_rules, group_id, [])
+  #   index = Enum.find_index(customs, &(&1["id"] == rule_id))
+  #
+  #   target_index =
+  #     case {direction, index} do
+  #       {_, nil} -> nil
+  #       {"up", i} when i > 0 -> i - 1
+  #       {"down", i} when i < length(customs) - 1 -> i + 1
+  #       _ -> nil
+  #     end
+  #
+  #   if is_nil(target_index) do
+  #     {:noreply, socket}
+  #   else
+  #     a = Enum.at(customs, index)
+  #     b = Enum.at(customs, target_index)
+  #
+  #     reordered =
+  #       customs
+  #       |> List.replace_at(index, b)
+  #       |> List.replace_at(target_index, a)
+  #
+  #     {:noreply,
+  #      assign(socket, custom_rules: Map.put(socket.assigns.custom_rules, group_id, reordered))}
+  #   end
+  # end
+
+  # what the Draggable hook sends when a drag ends: the list's new order of `data-item`s, and the list's `data-parent`
+  def handle_event("reorder_categories", %{"target_order" => ids}, socket),
+    do: {:noreply, socket |> put_own_order("category", nil, ids) |> maybe_auto_save()}
+
+  def handle_event(
+        "reorder_sections",
+        %{"parent_item" => category, "target_order" => ids},
+        socket
+      ),
+      do: {:noreply, socket |> put_own_order("section", category, ids) |> maybe_auto_save()}
+
+  def handle_event(
+        "reorder_template_rules",
+        %{"parent_item" => section, "target_order" => ids},
+        socket
+      ),
+      do: {:noreply, socket |> put_own_order("rule", section, ids) |> maybe_auto_save()}
 
   def handle_event(
         "reorder_custom_rules",
-        %{"group_id" => group_id, "target_order" => order},
+        %{"parent_item" => section, "target_order" => ids},
+        socket
+      ),
+      do: {:noreply, socket |> put_custom_order(section, ids) |> maybe_auto_save()}
+
+  # the up and down buttons, for whoever can't drag
+  def handle_event(
+        "move",
+        %{"kind" => "custom", "parent" => section, "item" => item, "direction" => direction},
         socket
       ) do
-    customs = Map.get(socket.assigns.custom_rules, group_id, [])
+    ids =
+      socket.assigns.custom_rules
+      |> Map.get(section, [])
+      |> Enum.map(&to_string(&1["id"]))
 
-    reordered =
-      order
-      |> Enum.map(fn id_str ->
-        id = String.to_integer(id_str)
-        Enum.find(customs, &(&1["id"] == id))
-      end)
-      |> Enum.reject(&is_nil/1)
-
-    custom_rules = Map.put(socket.assigns.custom_rules, group_id, reordered)
-    {:noreply, assign(socket, custom_rules: custom_rules)}
+    {:noreply,
+     socket |> put_custom_order(section, move_in(ids, item, direction)) |> maybe_auto_save()}
   end
 
   def handle_event(
-        "move_custom_rule",
-        %{"section_id" => group_id, "rule_id" => rule_id_str, "direction" => direction},
+        "move",
+        %{"kind" => kind, "item" => item, "direction" => direction} = params,
         socket
       ) do
-    rule_id = String.to_integer(rule_id_str)
-    customs = Map.get(socket.assigns.custom_rules, group_id, [])
-    index = Enum.find_index(customs, &(&1["id"] == rule_id))
+    ids = current_ids(socket.assigns.ordered_template, kind, params["parent"])
 
-    target_index =
-      case {direction, index} do
-        {_, nil} -> nil
-        {"up", i} when i > 0 -> i - 1
-        {"down", i} when i < length(customs) - 1 -> i + 1
-        _ -> nil
-      end
-
-    if is_nil(target_index) do
-      {:noreply, socket}
-    else
-      a = Enum.at(customs, index)
-      b = Enum.at(customs, target_index)
-
-      reordered =
-        customs
-        |> List.replace_at(index, b)
-        |> List.replace_at(target_index, a)
-
-      {:noreply,
-       assign(socket, custom_rules: Map.put(socket.assigns.custom_rules, group_id, reordered))}
-    end
+    {:noreply,
+     socket
+     |> put_own_order(kind, params["parent"], move_in(ids, item, direction))
+     |> maybe_auto_save()}
   end
 
   def handle_event("show_export", %{"format" => format}, socket) do
@@ -273,8 +368,96 @@ defmodule Bonfire.CommunityRules.Web.RulesBuilderLive do
   defp maybe_auto_save(%{assigns: %{mode: :entity}} = socket), do: persist_entity_rules(socket)
   defp maybe_auto_save(socket), do: socket
 
+  # --- ordering helpers ---
+
+  defp put_own_order(socket, kind, parent, ids) do
+    ids = Enum.reject(ids || [], &is_nil/1)
+    own = socket.assigns.own_order
+
+    own =
+      case kind do
+        "category" -> Map.put(own, "categories", ids)
+        "section" -> Map.update(own, "sections", %{parent => ids}, &Map.put(&1, parent, ids))
+        "rule" -> Map.update(own, "rules", %{parent => ids}, &Map.put(&1, parent, ids))
+      end
+
+    assign_order(socket, own)
+  end
+
+  defp put_custom_order(socket, section, ids) do
+    customs = Map.get(socket.assigns.custom_rules, section, [])
+    by_id = Map.new(customs, &{to_string(&1["id"]), &1})
+    listed = ids |> Enum.reject(&is_nil/1) |> Enum.uniq() |> Enum.flat_map(&List.wrap(by_id[&1]))
+    reordered = listed ++ Enum.reject(customs, &(&1 in listed))
+
+    assign(socket, custom_rules: Map.put(socket.assigns.custom_rules, section, reordered))
+  end
+
+  # the ids of one list, in the order it shows
+  defp current_ids(template, "category", _),
+    do: template |> Keyword.keys() |> Enum.map(&to_string/1)
+
+  defp current_ids(template, "section", category) do
+    Enum.find_value(template, [], fn {id, data} ->
+      if to_string(id) == category,
+        do: data |> Keyword.get(:sections, []) |> Keyword.keys() |> Enum.map(&to_string/1)
+    end)
+  end
+
+  defp current_ids(template, "rule", section) do
+    template
+    |> Enum.flat_map(fn {_, data} -> Keyword.get(data, :sections, []) end)
+    |> Enum.find_value([], fn {id, data} ->
+      if to_string(id) == section,
+        do: data |> Keyword.get(:rules, []) |> Keyword.keys() |> Enum.map(&to_string/1)
+    end)
+  end
+
+  @doc """
+  The id prefix of an item's move buttons. Rule ids repeat across sections, so a rule's names its section. Category and section ids are unique on their own.
+
+      iex> Bonfire.CommunityRules.Web.RulesBuilderLive.move_id("b", "rule", "civility", "no_spam")
+      "b-move-rule-civility-no_spam"
+
+      iex> Bonfire.CommunityRules.Web.RulesBuilderLive.move_id("b", "section", "behavior", "civility")
+      "b-move-section-civility"
+  """
+  def move_id(parent_id, kind, parent, item) when kind in ["rule", "custom"],
+    do: "#{parent_id}-move-#{kind}-#{parent}-#{item}"
+
+  def move_id(parent_id, kind, _parent, item), do: "#{parent_id}-move-#{kind}-#{item}"
+
+  @doc """
+  Swaps an id with its neighbour above or below. At either end, or when the id isn't there, the list stays as it is.
+
+      iex> Bonfire.CommunityRules.Web.RulesBuilderLive.move_in(["a", "b", "c"], "b", "up")
+      ["b", "a", "c"]
+
+      iex> Bonfire.CommunityRules.Web.RulesBuilderLive.move_in(["a", "b"], "b", "down")
+      ["a", "b"]
+  """
+  def move_in(ids, item, direction) do
+    index = Enum.find_index(ids, &(&1 == item))
+
+    target =
+      case {direction, index} do
+        {_, nil} -> nil
+        {"up", i} when i > 0 -> i - 1
+        {"down", i} when i < length(ids) - 1 -> i + 1
+        _ -> nil
+      end
+
+    if target,
+      do: ids |> List.replace_at(index, Enum.at(ids, target)) |> List.replace_at(target, item),
+      else: ids
+  end
+
   defp persist_entity_rules(socket) do
-    case CommunityRules.save_rules(socket.assigns.entity, build_rules_map(socket.assigns)) do
+    case CommunityRules.save_rules(
+           socket.assigns.entity,
+           build_rules_map(socket.assigns),
+           socket.assigns.own_order
+         ) do
       {:ok, _saved} -> socket
       _ -> assign_flash(socket, :error, l("Could not save rules"))
     end

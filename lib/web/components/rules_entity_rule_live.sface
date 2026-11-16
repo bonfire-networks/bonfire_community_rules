@@ -1,45 +1,68 @@
-<div>
-  <label
-    id={"#{@parent_id}-rule-label-#{@section_id}-#{@rule_id}"}
-    class="flex items-center gap-3 cursor-pointer py-1.5 px-2 rounded-selector hover:bg-base-200 focus-within:bg-base-200 transition-colors"
-  >
-    <input
-      type="checkbox"
-      id={"#{@parent_id}-rule-check-#{@section_id}-#{@rule_id}"}
-      class="checkbox checkbox-sm checkbox-primary"
-      checked={Map.get(@checked, "#{@section_id}:#{@rule_id}")}
-      phx-click="toggle_rule"
-      phx-value-key={"#{@section_id}:#{@rule_id}"}
-      phx-target={@target}
-      disabled={@read_only}
-    />
-    <span class="text-sm">{@rule_meta[:name] || @rule_id}</span>
-  </label>
+{#case {"#{@section_id}:#{@rule_id}", Map.has_key?(@inherited, "#{@section_id}:#{@rule_id}")}}
+  {#match {key, inherited?}}
+    <div id={"#{@parent_id}-rule-#{@section_id}-#{@rule_id}"} data-sortable-item data-item={@rule_id}>
+      <div class="flex items-center gap-1">
+        <span
+          :if={@reorderable}
+          data-sortable-handler
+          aria-hidden="true"
+          class="cursor-grab text-subtle hover:text-muted shrink-0 p-1"
+        ><#Icon iconify="ph:dots-six-vertical" class="size-4" /></span>
+        <label
+          id={"#{@parent_id}-rule-label-#{@section_id}-#{@rule_id}"}
+          class="flex-1 flex items-center gap-3 cursor-pointer py-1.5 px-2 rounded-selector hover:bg-base-200 focus-within:bg-base-200 transition-colors"
+        >
+          {!-- an instance rule is ticked for every group and only the instance can untick it --}
+          <input
+            type="checkbox"
+            id={"#{@parent_id}-rule-check-#{@section_id}-#{@rule_id}"}
+            class="checkbox checkbox-sm checkbox-primary"
+            checked={inherited? or Map.get(@checked, key)}
+            phx-click="toggle_rule"
+            phx-value-key={key}
+            phx-target={@target}
+            disabled={@read_only or inherited?}
+          />
+          <span class="text-sm">{@rule_meta[:name] || @rule_id}</span>
+        </label>
+        <div :if={@reorderable} class="join shrink-0">
+          <Bonfire.UI.Common.MoveButtonsLive
+            id={Bonfire.CommunityRules.Web.RulesBuilderLive.move_id(@parent_id, "rule", @section_id, @rule_id)}
+            values={%{kind: "rule", parent: @section_id, item: @rule_id}}
+            label={@rule_meta[:name] || @rule_id}
+            first={@first}
+            last={@last}
+            target={@target}
+            class="btn btn-ghost btn-xs btn-square join-item"
+          />
+        </div>
+      </div>
 
-  {#if Map.get(@checked, "#{@section_id}:#{@rule_id}") && @rule_meta[:has_qualifier]}
-    <form
-      id={"#{@parent_id}-qualifier-block-#{@section_id}-#{@rule_id}"}
-      phx-change="set_qualifier"
-      phx-target={@target}
-      class="ml-8 mt-1 mb-2 p-3 bg-base-200 rounded-box"
-    >
-      <input type="hidden" name="key" value={"#{@section_id}:#{@rule_id}"}>
-      <fieldset class="flex flex-col gap-1">
-        <legend class="text-xs font-medium text-base-content mb-1">{l("Enforcement")}</legend>
-        {#for {val, label} <- Bonfire.CommunityRules.Qualifier.options()}
-          <label class="flex items-center gap-2 cursor-pointer py-0.5">
-            <input
-              type="radio"
-              name="value"
-              value={val}
-              class="radio radio-xs radio-primary"
-              checked={Map.get(@qualifiers, "#{@section_id}:#{@rule_id}") == val}
-              disabled={@read_only}
-            />
-            <span class="text-sm">{label}</span>
-          </label>
-        {/for}
-      </fieldset>
-    </form>
-  {/if}
-</div>
+      {#if (inherited? or Map.get(@checked, key)) && @rule_meta[:has_qualifier]}
+        <form
+          id={"#{@parent_id}-qualifier-block-#{@section_id}-#{@rule_id}"}
+          phx-change="set_qualifier"
+          phx-target={@target}
+          class="ml-8 mt-1 mb-2 p-3 bg-base-200 rounded-box"
+        >
+          <input type="hidden" name="key" value={key}>
+          <fieldset class="flex flex-col gap-1">
+            <legend class="text-xs font-medium text-base-content mb-1">{l("Enforcement")}</legend>
+            {#for {val, label} <- Bonfire.CommunityRules.Qualifier.options()}
+              <label class="flex items-center gap-2 cursor-pointer py-0.5">
+                <input
+                  type="radio"
+                  name="value"
+                  value={val}
+                  class="radio radio-xs radio-primary"
+                  checked={if inherited?, do: @inherited[key] == val, else: Map.get(@qualifiers, key) == val}
+                  disabled={@read_only or inherited?}
+                />
+                <span class="text-sm">{label}</span>
+              </label>
+            {/for}
+          </fieldset>
+        </form>
+      {/if}
+    </div>
+{/case}

@@ -1,4 +1,4 @@
-{!-- a checkbox rather than JS, so it works on static guest pages; one list, so the numbering stays continuous --}
+{!-- a checkbox rather than JS, so it works on static guest pages; one running position across categories, so "Show all" cuts at the same rule wherever the headings fall --}
 <div data-show-first={@collapsible}>
   <input
     :if={@collapsible and length(all_rules(@sections)) > @show_first}
@@ -6,31 +6,50 @@
     id={"#{@id}-all"}
     class="sr-only"
   />
-  <ol class={class_for(@classes, :list)}>
-    {#for {rule, idx} <- Enum.with_index(all_rules(@sections), 1)}
-      <li class={class_for(@classes, :item)} data-extra={@collapsible and idx > @show_first}>
-        <span class={class_for(@classes, :index)}>
-          {idx}
-        </span>
-        <div class="flex-1 flex flex-wrap items-baseline gap-x-2 gap-y-1">
-          <span class={class_for(@classes, :name)}>{e(rule, :name, nil)}</span>
-          {#case e(rule, :qualifier, nil)}
-            {#match nil}
-            {#match q}
-              <span
-                data-role="rule-qualifier"
-                class={
-                  "inline-flex items-center px-1.5 py-px rounded-md text-xs font-medium",
-                  "bg-error/10 text-error": q == "no",
-                  "bg-success/10 text-success": q == "yes",
-                  "bg-warning/15 text-warning": q in ["with_label", "with_approval"]
-                }
-              >{Bonfire.CommunityRules.Qualifier.label(q)}</span>
-          {/case}
-        </div>
-      </li>
+  <div class={class_for(@classes, :body)}>
+    {#for category <- positioned(@sections)}
+      {!-- hidden with its rules, so a heading never shows above nothing --}
+      <h4
+        data-role="rules-category"
+        data-extra={@collapsible and category.first > @show_first}
+        class={class_for(@classes, :category)}
+      >{category.name}</h4>
+      {#for {section, section_index} <- Enum.with_index(category.sections)}
+        <hr
+          :if={section_index > 0}
+          data-role="rules-section-divider"
+          data-extra={@collapsible and section.first > @show_first}
+          class={class_for(@classes, :divider)}
+        />
+        <ul class={class_for(@classes, :list)}>
+          {#for {rule, idx} <- section.rules}
+            <li class={class_for(@classes, :item)} data-extra={@collapsible and idx > @show_first}>
+              {!-- numbers left out now that rules show under category headings
+              <span class={class_for(@classes, :index)}>
+                {idx}
+              </span> --}
+              <div class="flex-1 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                <span class={class_for(@classes, :name)}>{e(rule, :name, nil)}</span>
+                {#case e(rule, :qualifier, nil)}
+                  {#match nil}
+                  {#match q}
+                    <span
+                      data-role="rule-qualifier"
+                      class={
+                        "inline-flex items-center px-1.5 py-px rounded-md text-xs font-medium",
+                        "bg-error/10 text-error": q == "no",
+                        "bg-success/10 text-success": q == "yes",
+                        "bg-warning/15 text-warning": q in ["with_label", "with_approval"]
+                      }
+                    >{Bonfire.CommunityRules.Qualifier.label(q)}</span>
+                {/case}
+              </div>
+            </li>
+          {/for}
+        </ul>
+      {/for}
     {/for}
-  </ol>
+  </div>
   <div
     :if={(@collapsible and length(all_rules(@sections)) > @show_first) or slot_assigned?(:footer)}
     class={class_for(@classes, :footer)}

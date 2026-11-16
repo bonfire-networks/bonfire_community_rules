@@ -12,12 +12,11 @@
     collapsible
     show_first={5}
     classes={%{
-      list: "mt-3",
-      item:
-        "grid grid-cols-[24px_minmax(0,1fr)] items-baseline border-t border-base-content/10 py-2.5 first:border-t-0",
-      index: "text-sm tabular-nums text-muted",
+      body: "mt-3 flex flex-col gap-2",
+      list: "",
+      item: "flex items-baseline border-t border-base-content/10 py-2.5 first:border-t-0",
       name: "text-base font-medium leading-snug text-base-content",
-      footer: "mt-1 flex flex-wrap items-center gap-x-6 pl-6",
+      footer: "mt-1 flex flex-wrap items-center gap-x-6",
       show_all:
         "inline-flex min-h-11 cursor-pointer items-center text-sm font-medium underline decoration-divider underline-offset-3 hover:decoration-current"
     }}

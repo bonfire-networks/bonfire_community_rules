@@ -66,38 +66,55 @@ defmodule Bonfire.CommunityRules do
       Config.get([:bonfire_community_rules, :template_rules], [])
   end
 
-  @doc "Persists a rules map for the given entity ID. Returns `{:ok, extra_info}` or `{:error, reason}`."
-  def save_rules(entity_or_id, rules)
+  @doc """
+  Persists a rules map for the given entity ID. Returns `{:ok, extra_info}` or `{:error, reason}`.
 
-  def save_rules(entity_id, rules) when is_binary(entity_id) and is_map(rules) do
+  `order` (see `order_template/2` for its shape) replaces the stored order when given. Without it the stored order stays.
+  """
+  def save_rules(entity_or_id, rules, order \\ nil)
+
+  def save_rules(entity_id, rules, order) when is_binary(entity_id) and is_map(rules) do
     get_extra_info_by_id(entity_id)
-    |> save_rules(rules)
+    |> save_rules(rules, order)
   end
 
-  def save_rules(%Bonfire.Data.Identity.ExtraInfo{} = extra_info, rules) when is_map(rules) do
-    Changesets.cast_rules_changeset(extra_info, rules)
+  def save_rules(%Bonfire.Data.Identity.ExtraInfo{} = extra_info, rules, order)
+      when is_map(rules) do
+    Changesets.cast_rules_changeset(extra_info, rules, order: order)
     |> repo().insert(
       on_conflict: {:replace, [:info]},
       conflict_target: :id
     )
     |> tap(fn
       # every clause above comes through here, so nothing can write rules and leave what was read about them behind
-      {:ok, _saved} -> Cache.reset({__MODULE__, :load_instance_rules_sections}, [])
-      _ -> nil
+      {:ok, _saved} ->
+        Cache.reset({__MODULE__, :load_instance_rules_sections}, [])
+        Cache.reset({__MODULE__, :get_extra_info_for_instance}, [])
+
+      _ ->
+        nil
     end)
   end
 
   # anything else that carries an `extra_info`, so that a caller holding the thing the rules are about does not have to know how they are stored
-  def save_rules(entity, rules) when is_map(rules) do
+  def save_rules(entity, rules, order) when is_map(rules) do
     case e(entity, :extra_info, nil) do
-      %Bonfire.Data.Identity.ExtraInfo{} = extra_info -> save_rules(extra_info, rules)
-      _ -> save_rules(%Bonfire.Data.Identity.ExtraInfo{id: e(entity, :id, nil)}, rules)
+      %Bonfire.Data.Identity.ExtraInfo{} = extra_info ->
+        save_rules(extra_info, rules, order)
+
+      _ ->
+        save_rules(%Bonfire.Data.Identity.ExtraInfo{id: e(entity, :id, nil)}, rules, order)
     end
   end
 
   @doc "Returns the ExtraInfo struct for the local instance (creates an empty one if not yet saved)."
   def get_extra_info_for_instance do
     get_extra_info_by_id(Settings.instance_scope())
+  end
+
+  @doc "`get_extra_info_for_instance/0`, cached, for what every group page and group rules editor reads about the instance. `save_rules/3` forgets it."
+  def instance_extra_info do
+    Cache.maybe_apply_cached({__MODULE__, :get_extra_info_for_instance}, [])
   end
 
   @doc """
@@ -115,11 +132,104 @@ defmodule Bonfire.CommunityRules do
     |> get_entity_rules_sections()
   end
 
-  @doc "Returns the display-ready rules sections for the given entity or extra_info (see `selected_rules/4` for the shape)."
-  def get_entity_rules_sections(entity) do
+  @doc """
+  Returns the display-ready rules sections for the given entity or extra_info (see `selected_rules/4` for the shape), in the entity's order (see `rules_order/1`).
+
+  With `except: other_extra_info`, leaves out the template rules `other_extra_info` also has, so a group can show its own rules apart from the instance's. Custom rules are never left out: their ids only mean something inside one entity.
+  """
+  # TODO: work out how to federate which instance rules a group inherits, so remote servers can tell a group's own rules from its instance's
+  def get_entity_rules_sections(entity, opts \\ []) do
     {checked, qualifiers, custom_rules} = hydrate_entity(entity)
-    selected_rules(checked, qualifiers, custom_rules, template(:instance))
+
+    checked =
+      case opts[:except] do
+        nil ->
+          checked
+
+        except ->
+          {except_checked, _, _} = hydrate_entity(except)
+          Map.drop(checked, Map.keys(except_checked))
+      end
+
+    selected_rules(
+      checked,
+      qualifiers,
+      custom_rules,
+      order_template(template(:instance), rules_order(entity))
+    )
   end
+
+  @doc """
+  Returns the order an entity's rules show in: `%{"categories" => [id], "sections" => %{category_id => [id]}, "rules" => %{section_id => [id]}}`, any key optional.
+
+  Each list is the entity's own when it saved one, else the instance's (for anything other than the instance). A list in neither keeps the template order.
+  """
+  # TODO: work out how to federate the rules order and the category grouping, so remote servers show a group's rules the way its home instance does
+  def rules_order(entity), do: entity |> own_rules_order() |> inherit_rules_order(entity)
+
+  @doc "The order an entity saved for itself, without what it inherits (see `rules_order/1`)."
+  def own_rules_order(%Bonfire.Data.Identity.ExtraInfo{} = extra_info),
+    do: E.e(extra_info, :info, "rules_order", %{}) || %{}
+
+  def own_rules_order(entity), do: E.e(entity, :extra_info, :info, "rules_order", %{}) || %{}
+
+  @doc "Fills in the lists missing from `own` with the instance's, unless `entity` is the instance."
+  def inherit_rules_order(own, entity) do
+    if instance?(entity) do
+      own
+    else
+      inherited = own_rules_order(instance_extra_info())
+
+      %{
+        "categories" => own["categories"] || inherited["categories"],
+        "sections" => Map.merge(inherited["sections"] || %{}, own["sections"] || %{}),
+        "rules" => Map.merge(inherited["rules"] || %{}, own["rules"] || %{})
+      }
+      |> Map.reject(fn {_, list} -> list in [nil, [], %{}] end)
+    end
+  end
+
+  @doc "Whether the entity (or extra_info) is the local instance."
+  def instance?(entity), do: E.e(entity, :id, nil) == Settings.instance_scope()
+
+  @doc """
+  Reorders a template (categories, the sections in each category, and the rules in each section) by an order map (see `rules_order/1`). Ids the order doesn't know are skipped, and template entries the order doesn't list come after the listed ones, in template order.
+
+      iex> Bonfire.CommunityRules.order_template([a: [sections: []], b: [sections: []]], %{"categories" => ["b"]})
+      [b: [sections: []], a: [sections: []]]
+  """
+  def order_template(template, order) when is_map(order) and order != %{} do
+    template
+    |> sort_by_ids(order["categories"])
+    |> Enum.map(fn {category, category_data} ->
+      sections =
+        category_data
+        |> Keyword.get(:sections, [])
+        |> sort_by_ids(get_in(order, ["sections", to_string(category)]))
+        |> Enum.map(fn {section, section_data} ->
+          {section,
+           Keyword.update(
+             section_data,
+             :rules,
+             [],
+             &sort_by_ids(&1, get_in(order, ["rules", to_string(section)]))
+           )}
+        end)
+
+      {category, Keyword.put(category_data, :sections, sections)}
+    end)
+  end
+
+  def order_template(template, _), do: template
+
+  defp sort_by_ids(entries, ids) when is_list(ids) and ids != [] do
+    by_id = Map.new(entries, fn {id, _} = entry -> {to_string(id), entry} end)
+    listed = ids |> Enum.uniq() |> Enum.flat_map(&List.wrap(by_id[&1]))
+    listed_ids = MapSet.new(ids)
+    listed ++ Enum.reject(entries, fn {id, _} -> MapSet.member?(listed_ids, to_string(id)) end)
+  end
+
+  defp sort_by_ids(entries, _), do: entries
 
   @doc """
   Whether there are any rules to show.
@@ -171,7 +281,7 @@ defmodule Bonfire.CommunityRules do
               %{name: c["name"], qualifier: c["qualifier"]}
             end)
 
-          all = selected ++ custom
+          all = custom ++ selected
           if all == [], do: [], else: [%{name: Keyword.get(section_data, :name, sid), rules: all}]
         end)
 

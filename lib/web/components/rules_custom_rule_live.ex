@@ -6,5 +6,7 @@ defmodule Bonfire.CommunityRules.Web.RulesCustomRuleLive do
   prop rule, :map, required: true
   prop mode, :atom, default: :entity
   prop read_only, :boolean, default: false
+  prop first, :boolean, default: false
+  prop last, :boolean, default: false
   prop target, :any, required: true
 end

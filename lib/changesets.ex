@@ -67,14 +67,25 @@ defmodule Bonfire.CommunityRules.Changesets do
 
   @doc """
   Builds an ExtraInfo changeset that merges rules into `info`, preserving existing keys.
-  Also sets `info["lang"]` to the current locale.
+  Also sets `info["lang"]` to the current locale, and `info["rules_order"]` when an order is given (otherwise the stored order stays).
   """
-  def cast_rules_changeset(%ExtraInfo{} = extra_info, rules, locale \\ nil) do
-    locale = locale || Bonfire.Common.Localise.get_locale() |> to_string()
+  def cast_rules_changeset(%ExtraInfo{} = extra_info, rules, opts \\ []) do
+    locale = opts[:locale] || Bonfire.Common.Localise.get_locale() |> to_string()
     existing_info = extra_info.info || %{}
     existing_rules = Map.get(existing_info, "rules", %{})
     merged_rules = Map.merge(existing_rules, rules)
-    new_info = existing_info |> Map.put("rules", merged_rules) |> Map.put("lang", locale)
+
+    new_info =
+      existing_info
+      |> Map.put("rules", merged_rules)
+      |> Map.put("lang", locale)
+      |> then(fn info ->
+        case opts[:order] do
+          order when is_map(order) -> Map.put(info, "rules_order", order)
+          _ -> info
+        end
+      end)
+
     ExtraInfo.changeset(extra_info, %{info: new_info})
   end
 end

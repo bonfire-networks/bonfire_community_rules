@@ -5,8 +5,11 @@
       widget_title={@widget_title || l("Community rules")}
     >
       <:action>
+        {!-- the rules sit in the code of conduct page's sidebar --}
         <LinkLive
-          to="/rules"
+          :if={@show_link}
+          opts={"data-role": "widget_rules_link"}
+          to="/conduct"
           label={l("All rules")}
           class="tooltip-button btn btn-circle btn-ghost btn-xs"
           data-tip={l("All rules")}
