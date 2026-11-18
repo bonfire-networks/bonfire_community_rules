@@ -98,7 +98,7 @@ defmodule Bonfire.CommunityRules.WidgetRulesLiveTest do
     end
 
     # the rules sit beside the code of conduct, and the widget there doesn't link to the page it's on
-    test "the code of conduct page shows them in its sidebar, to members and guests, without the link" do
+    test "the code of conduct page shows them in its sidebar to members, and above the text to guests, without a link back to it" do
       user = fake_user!()
 
       conn(user: user, account: user.account)
@@ -109,8 +109,10 @@ defmodule Bonfire.CommunityRules.WidgetRulesLiveTest do
       # a guest has no LiveView socket, so the page they get is the static render
       build_conn()
       |> get_conn_render("/conduct")
-      |> assert_has("[data-id=widget_rules]", text: "Be respectful")
-      |> refute_has("[data-role=widget_rules_link]")
+      |> refute_has("[data-id=right_nav_and_widgets]")
+      |> assert_has("#guest-board-sheet #conduct-rules ~ #conduct-body")
+      |> assert_has("#conduct-rules li", text: "Be respectful")
+      |> refute_has("#conduct-rules a[href='/conduct']")
     end
   end
 end
