@@ -239,4 +239,31 @@ defmodule Bonfire.CommunityRules.OrderTest do
                ["House rule" | reversed]
     end
   end
+
+  describe "rules_sections_for/1" do
+    test "gives an entity's own rules apart from the instance rules it shares, and the instance's" do
+      put_template()
+
+      {:ok, _} =
+        CommunityRules.save_rules(Settings.instance_scope(), %{
+          "civility" => %{"be_respectful" => %{}}
+        })
+
+      entity = other_entity()
+
+      {:ok, _} =
+        CommunityRules.save_rules(entity.id, %{
+          "civility" => %{
+            "be_respectful" => %{},
+            "no_spam" => %{},
+            "custom" => [%{"id" => 1, "name" => "House rule"}]
+          }
+        })
+
+      {own, instance} = CommunityRules.rules_sections_for(entity)
+
+      assert rule_names(own) == ["House rule", "No spam"]
+      assert rule_names(instance) == ["Be respectful"]
+    end
+  end
 end

@@ -126,6 +126,16 @@ defmodule Bonfire.CommunityRules do
     Cache.maybe_apply_cached({__MODULE__, :load_instance_rules_sections}, [])
   end
 
+  @doc """
+  An entity's rules, for showing next to the instance's: `{own_sections, instance_sections}`. The rules live in the entity's `ExtraInfo`, which the entity isn't loaded with. The entity's own leave out the instance rules it shares, which show in their own list.
+  """
+  def rules_sections_for(entity) do
+    extra_info = get_extra_info_by_id(Bonfire.Common.Types.uid(entity))
+
+    {get_entity_rules_sections(extra_info, except: instance_extra_info()),
+     get_instance_rules_sections()}
+  end
+
   @doc false
   def load_instance_rules_sections do
     get_extra_info_for_instance()
