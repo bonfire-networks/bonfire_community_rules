@@ -17,7 +17,7 @@
           <#Icon iconify="ph:scales-duotone" class="size-4 text-muted" />
         </LinkLive>
       </:action>
-      <div data-id="widget_rules">
+      <div data-id="widget_rules" data-role="widget-body">
         <Bonfire.CommunityRules.Web.RulesDisplayBodyLive
           sections={sections}
           classes={%{list: "list-none flex flex-col gap-2.5"}}
