@@ -10,11 +10,9 @@
           :if={@show_link}
           opts={"data-role": "widget_rules_link"}
           to="/conduct"
-          label={l("All rules")}
-          class="tooltip-button btn btn-circle btn-ghost btn-xs"
-          data-tip={l("All rules")}
+          class="widget-link"
         >
-          <#Icon iconify="ph:scales-duotone" class="size-4 text-muted" />
+          {l("All rules")}
         </LinkLive>
       </:action>
       <div data-id="widget_rules" data-role="widget-body">
